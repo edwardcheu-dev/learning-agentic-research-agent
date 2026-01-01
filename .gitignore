@@ -66,7 +66,7 @@ dmypy.json
 *.pem
 *.key
 
-# Project-specific data
+# Project-specific data (generated, can be rebuilt)
 data/chroma/
 data/memory.db
 

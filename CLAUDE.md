@@ -35,7 +35,7 @@ User → Orchestrator Agent → [Researcher | Writer | Fact-Checker] Agents
 - MCP Framework: FastMCP
 - A2A Framework: a2a-python
 - Vector Store: ChromaDB
-- Embeddings: HuggingFace SentenceTranformers
+- Embeddings: HuggingFace SentenceTransformers
 
 ## Project Structure
 
@@ -43,6 +43,10 @@ research-assistant/
 ├── CLAUDE.md
 ├── pyproject.toml
 ├── uv.lock
+├── .gitignore
+├── .claude/
+│   └── commands/
+│       └── start-phase.md
 ├── src/
 │   ├── agents/
 │   │   ├── __init__.py
@@ -61,10 +65,26 @@ research-assistant/
 │   │   ├── chunking.py
 │   │   └── retriever.py
 │   └── main.py
-├── notes/                  # Knowledge base (markdown files)
+├── docs/
+│   ├── checklists/
+│   │   ├── phase-1.md
+│   │   ├── phase-2.md
+│   │   ├── phase-3.md
+│   │   └── phase-4.md
+│   ├── learning-logs/
+│   │   ├── MASTER_LOG.md
+│   │   ├── phase-1-log.md
+│   │   ├── phase-2-log.md
+│   │   ├── phase-3-log.md
+│   │   └── phase-4-log.md
+│   └── reference/
+│       ├── claude-code-tips.md
+│       ├── sample-prompts.md
+│       └── workflow-guide.md
+├── notes/
 ├── data/
-│   ├── chroma/            # Vector store persistence
-│   └── memory.db          # SQLite conversation memory
+│   ├── chroma/
+│   └── memory.db
 └── tests/
 
 ## Development Commands
@@ -89,6 +109,9 @@ Run a specific MCP server:
 Run tests:
     uv run pytest
 
+Run tests with coverage:
+    uv run pytest --cov=src
+
 ## Implementation Phases
 
 ### Phase 1: Basic Agentic Loop
@@ -107,6 +130,50 @@ Implement document chunking, embedding generation, vector storage with ChromaDB,
 
 Split into specialized agents communicating via A2A protocol. Orchestrator coordinates Researcher, Writer, and Fact-Checker.
 
+## Development Workflow
+
+This project follows a structured learning workflow combining exploration, planning, TDD, and atomic commits.
+
+### Phase Workflow Pattern
+
+For each implementation phase:
+
+1. EXPLORE: Use subagents to investigate relevant patterns, docs, or existing code
+2. PLAN: Create a checklist in docs/checklists/phase-N.md before any code
+3. IMPLEMENT: For each checklist item, follow TDD:
+   - Write test first, commit with prefix `test:`
+   - Write implementation, commit with prefix `feat:`
+   - Refactor if needed, commit with prefix `refactor:`
+4. DOCUMENT: After each logical group of commits:
+   - Append summary to docs/learning-logs/phase-N-log.md
+   - Update CLAUDE.md with patterns learned
+   - Commit with prefix `docs:`
+
+### Commit Message Prefixes
+
+- `test:` - Adding or updating tests (before implementation)
+- `feat:` - New feature implementation (making tests pass)
+- `refactor:` - Code improvement without behavior change
+- `docs:` - Documentation updates
+- `chore:` - Build, config, or tooling changes
+
+### Learning Logs
+
+After completing a logical group of checklist items:
+
+1. Append a summary to the current phase log (docs/learning-logs/phase-N-log.md)
+2. Include: what was built, key decisions, code snippets, sample output
+3. Periodically update MASTER_LOG.md to aggregate all phase logs into a coherent narrative
+
+The MASTER_LOG.md should read like a tutorial: "Read this to understand how this repo works."
+
+### Context Management
+
+- Use /clear between major checklist items to keep context focused
+- Use subagents for investigation tasks before implementation
+- Keep the current phase checklist open as a working scratchpad
+- Reference docs/reference/ for tips and sample prompts
+
 ## Key Patterns to Follow
 
 1. Agentic Loop: Always implement observe → think → act → repeat cycle
@@ -121,11 +188,27 @@ This project expects the following environment variables to be set in your shell
 - POE_API_KEY: Required for OpenAI API access
 - BRAVE_SEARCH_API_KEY: Used for web search
 
-These should already be available if you've configured your shell correctly. 
+These should already be available if you've configured your shell correctly.
 Do not hardcode API keys in any source files.
 
 To verify they're set:
     echo $POE_API_KEY
+
+## Code Style
+
+Use ruff for linting and formatting. Run before committing:
+    uv run ruff check .
+    uv run ruff format .
+
+## Testing
+
+This project follows TDD. Write tests before implementation.
+    uv run pytest
+    uv run pytest --cov=src
+
+Test files mirror source structure in tests/ directory.
+
+Patterns established during development will be documented here.
 
 ## Important Notes
 
@@ -135,22 +218,22 @@ To verify they're set:
 - Vector store persists to data/chroma/
 - All notes are markdown files in notes/
 - Use POE Python OpenAI for client creation:
+
 ```python
 import os
 import openai
 
 client = openai.OpenAI(
-    api_key = os.getenv("POE_API_KEY")
-    base_url = "https://api.poe.com/v1",
+    api_key=os.getenv("POE_API_KEY"),
+    base_url="https://api.poe.com/v1",
 )
 
 chat = client.chat.completions.create(
-    model = "gpt-5-mini",
-    messages = [{
-      "role": "user",
-      "content": "Analyze the root causes and subsequent impacts of the Industrial Revolution in Europe"
+    model="gpt-5-mini",
+    messages=[{
+        "role": "user",
+        "content": "Your prompt here"
     }]
 )
 
 print(chat.choices[0].message.content)
-```
