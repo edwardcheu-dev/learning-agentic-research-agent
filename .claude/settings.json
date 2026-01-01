@@ -1,0 +1,8 @@
+{
+  "packageManager": "uv",
+  "conventions": {
+    "pythonRunner": "uv run",
+    "installCommand": "uv sync",
+    "addPackageCommand": "uv add"
+  }
+}
