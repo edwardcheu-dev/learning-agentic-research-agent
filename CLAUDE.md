@@ -31,11 +31,34 @@ User → Orchestrator Agent → [Researcher | Writer | Fact-Checker] Agents
 
 - Python: 3.12+
 - Package Manager: uv (NOT pip)
-- LLM: OpenAI API via openai SDK (gpt-5-mini recommended)
+- LLM: OpenAI API via openai SDK (gpt-5.1 recommended)
 - MCP Framework: FastMCP
 - A2A Framework: a2a-python
 - Vector Store: ChromaDB
 - Embeddings: HuggingFace SentenceTransformers
+
+## Troubleshooting
+
+### POE API Important Notes
+
+⚠️ **CRITICAL**: When using POE API, always set `max_tokens` parameter in API calls to prevent:
+- Runaway image generation
+- Timeout errors
+- Excessive token usage
+
+Use the centralized constant:
+```python
+from src.config import DEFAULT_MAX_TOKENS, MODEL_NAME
+
+response = client.chat.completions.create(
+    model=MODEL_NAME,
+    messages=[...],
+    max_tokens=DEFAULT_MAX_TOKENS  # Always include this!
+)
+```
+
+For detailed troubleshooting, model selection guidance, and common issues:
+- **[POE API Troubleshooting Guide](docs/reference/poe-api-troubleshooting.md)** - Comprehensive model comparison, common issues, and solutions
 
 ## Project Structure
 
@@ -66,6 +89,10 @@ research-assistant/
 │   │   ├── chunking.py
 │   │   └── retriever.py
 │   └── main.py
+├── scripts/
+│   ├── CLAUDE.md           # AI agent context
+│   ├── README.md           # Human documentation
+│   └── test_poe_models.py  # Model testing script
 ├── docs/
 │   ├── checklists/
 │   │   ├── phase-1.md
@@ -78,8 +105,10 @@ research-assistant/
 │   │   ├── phase-2-log.md
 │   │   ├── phase-3-log.md
 │   │   └── phase-4-log.md
+│   ├── model-comparison-*.md  # Generated model test reports
 │   └── reference/
 │       ├── claude-code-tips.md
+│       ├── poe-api-troubleshooting.md
 │       ├── sample-prompts.md
 │       └── workflow-guide.md
 ├── notes/
@@ -112,6 +141,34 @@ Run tests:
 
 Run tests with coverage:
     uv run pytest --cov=src
+
+## Scripts
+
+The `scripts/` directory contains utility scripts for testing and validation.
+
+### Model Testing
+
+**Test POE API models for ReAct agent compatibility**:
+```bash
+uv run python scripts/test_poe_models.py
+```
+
+This script:
+- Tests multiple models (gpt-4.1, gpt-4.1-mini, gpt-5.1, etc.)
+- Validates ReAct format compliance
+- Measures reliability and performance
+- Generates comparison report in `docs/model-comparison-{date}.md`
+
+**Configure models to test**:
+Edit `scripts/test_poe_models.py` and modify the `MODELS_TO_TEST` list.
+
+**When to run**:
+- Before changing `MODEL_NAME` in `src/config.py`
+- When POE API adds new models
+- If experiencing model instability
+- To validate model selection for production
+
+See [scripts/README.md](scripts/README.md) for detailed usage and [scripts/CLAUDE.md](scripts/CLAUDE.md) for AI agent context.
 
 ## Implementation Phases
 
@@ -241,14 +298,76 @@ All code includes type hints:
 
 ### Code Style
 
-Ruff handles formatting automatically via pre-commit hooks.
-Manual formatting (if needed):
-    uv run ruff check .          # Check for issues
-    uv run ruff format .         # Auto-format code
+**Recommended workflow** (run BEFORE committing):
+```bash
+uv run ruff check . --fix      # Auto-fix linting issues
+uv run ruff format .           # Auto-format code (line length, imports, etc.)
+git add .                      # Stage the formatted files
+git commit -m "..."            # Now pre-commit will pass quickly
+```
 
-- Line length: 88 characters
-- Import ordering: stdlib → third-party → local
+This prevents pre-commit from reformatting and requiring a second commit.
+
+**Style guidelines**:
+- Line length: 88 characters (auto-fixed by Ruff)
+- Import ordering: stdlib → third-party → local (auto-fixed by Ruff)
 - Style guide: PEP 8 compliant
+
+**What Ruff fixes automatically**:
+- Lines exceeding 88 characters (wraps them)
+- Import sorting and organization
+- Trailing whitespace
+- Unused imports
+- Common PEP 8 violations
+
+**Manual formatting** (if you forget to run before commit):
+Ruff runs automatically via pre-commit hooks, but will require re-committing the formatted files.
+
+### API Call Safety Net
+
+**Multi-layer protection against accidental API calls during testing**:
+
+**Layer 1: Environment Variable Gate** (PRIMARY):
+- Integration tests require `ALLOW_INTEGRATION_TESTS=1`
+- Auto-skip via `tests/conftest.py` fixture
+- Logged when skipped
+
+**Layer 2: Pre-commit Configuration** (SECONDARY):
+- Runs: `pytest -m "not integration"`
+- Skips all `@pytest.mark.integration` tests
+
+**Layer 3: pytest.ini Default** (TERTIARY):
+- Default: `-m "not integration"` in `pyproject.toml`
+- Safe even if pytest run manually without flags
+
+**Layer 4: Logging & Audit Trail** (DETECTION):
+- `test-api-calls.log`: All test output
+- `api-call-audit.log`: API call timestamps
+- Post-commit hook checks for violations
+
+**Safe (no API calls)**:
+```bash
+pytest                    # Default: skips integration
+git commit -m "..."       # Pre-commit skips integration
+```
+
+**Unsafe (makes API calls)**:
+```bash
+# Requires explicit opt-in
+ALLOW_INTEGRATION_TESTS=1 pytest -m integration
+```
+
+**Verify safety net**:
+```bash
+# Should be empty after commit (if no integration tests ran)
+cat api-call-audit.log
+```
+
+**If safety net triggers**:
+```
+⚠️  SKIPPED integration test: test_model_integration (ALLOW_INTEGRATION_TESTS not set)
+```
+This is CORRECT behavior - safety net is working!
 
 ### Development Patterns
 
@@ -261,6 +380,9 @@ Patterns established during development will be documented here.
 - MCP servers run as separate processes
 - Vector store persists to data/chroma/
 - All notes are markdown files in notes/
+- **Model selection**: Use `scripts/test_poe_models.py` to validate before changing models
+- **Model testing reports**: Generated in `docs/model-comparison-*.md` for historical reference
+- **Integration tests**: Require `ALLOW_INTEGRATION_TESTS=1` to prevent accidental API costs
 
 ## Configuration
 
@@ -278,11 +400,12 @@ client = openai.OpenAI(
 
 # Use centralized model name
 chat = client.chat.completions.create(
-    model=MODEL_NAME,  # gpt-5-mini
+    model=MODEL_NAME,  # gpt-5.1
     messages=[{
         "role": "user",
         "content": "Your prompt here"
-    }]
+    }],
+    max_tokens=DEFAULT_MAX_TOKENS  # CRITICAL for POE API
 )
 
 print(chat.choices[0].message.content)
@@ -290,8 +413,9 @@ print(chat.choices[0].message.content)
 
 **Available Configuration Constants:**
 
-- `MODEL_NAME`: The OpenAI model to use (`"gpt-5-mini"`)
+- `MODEL_NAME`: The OpenAI model to use (`"gpt-5.1"`)
 - `DEFAULT_MAX_ITERATIONS`: Default max ReAct loop iterations (`3`)
+- `DEFAULT_MAX_TOKENS`: Default max_tokens for API calls (`1000`) - **REQUIRED for POE API**
 - `API_BASE_URL`: POE API base URL (`"https://api.poe.com/v1"`)
 - `get_api_key()`: Function that retrieves and validates `POE_API_KEY` from environment
 

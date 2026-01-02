@@ -27,11 +27,20 @@ Examples:
 import os
 
 # Model configuration
-MODEL_NAME: str = "gpt-5-mini"
-"""The OpenAI model to use for agent reasoning."""
+MODEL_NAME: str = "gpt-5.1"
+"""The OpenAI model to use for agent reasoning (Poe API identifier).
+Using GPT-5.1 (released Nov 2025) for best ReAct performance and reasoning."""
 
 DEFAULT_MAX_ITERATIONS: int = 3
 """Default maximum number of ReAct loop iterations."""
+
+DEFAULT_MAX_TOKENS: int = 1000
+"""Default max_tokens for LLM responses.
+
+CRITICAL for POE API: Always set max_tokens to prevent runaway generation
+(images, infinite loops, excessive token usage).
+
+See docs/reference/poe-api-troubleshooting.md for details."""
 
 # API configuration
 API_BASE_URL: str = "https://api.poe.com/v1"

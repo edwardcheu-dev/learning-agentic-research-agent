@@ -31,7 +31,13 @@ packages = ["src"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
-addopts = "-v"
+# Skip integration tests by default (safety net layer 3)
+addopts = "-v -m 'not integration'"
+# Register custom markers
+markers = [
+    "integration: marks tests as integration (requires ALLOW_INTEGRATION_TESTS=1, makes real API calls)",
+    "slow: marks tests as slow running",
+]
 
 [tool.ruff]
 line-length = 88

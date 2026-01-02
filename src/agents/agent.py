@@ -3,7 +3,7 @@
 from typing import Any
 
 from src.agents.tools import Tool, get_all_tools
-from src.config import MODEL_NAME
+from src.config import DEFAULT_MAX_TOKENS, MODEL_NAME
 
 
 class Agent:
@@ -133,7 +133,9 @@ and repeat until you can provide a final Answer.
         for iteration in range(self.max_iterations):
             # Call LLM
             response = self.client.chat.completions.create(
-                model=MODEL_NAME, messages=messages
+                model=MODEL_NAME,
+                messages=messages,
+                max_tokens=DEFAULT_MAX_TOKENS,  # Critical for POE API stability
             )
 
             llm_response = response.choices[0].message.content

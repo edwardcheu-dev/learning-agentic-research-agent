@@ -12,7 +12,7 @@ def test_config_has_model_name():
     """Config should define MODEL_NAME constant."""
     from src.config import MODEL_NAME
 
-    assert MODEL_NAME == "gpt-5-mini"
+    assert MODEL_NAME == "gpt-5.1"
     assert isinstance(MODEL_NAME, str)
 
 
@@ -22,6 +22,14 @@ def test_config_has_default_max_iterations():
 
     assert DEFAULT_MAX_ITERATIONS == 3
     assert isinstance(DEFAULT_MAX_ITERATIONS, int)
+
+
+def test_config_has_default_max_tokens():
+    """Config should define DEFAULT_MAX_TOKENS constant."""
+    from src.config import DEFAULT_MAX_TOKENS
+
+    assert DEFAULT_MAX_TOKENS == 1000
+    assert isinstance(DEFAULT_MAX_TOKENS, int)
 
 
 def test_config_has_api_base_url():

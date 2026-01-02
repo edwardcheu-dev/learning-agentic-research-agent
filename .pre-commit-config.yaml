@@ -22,12 +22,12 @@ repos:
         types: [python]
         pass_filenames: false
 
-  # Pytest - Run tests before commit
+  # Pytest - Run tests before commit (skip expensive integration tests)
   - repo: local
     hooks:
       - id: pytest
         name: Run pytest test suite
-        entry: uv run pytest
+        entry: uv run pytest -m "not integration"
         language: system
         pass_filenames: false
         always_run: true
