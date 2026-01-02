@@ -48,6 +48,7 @@ research-assistant/
 │   └── commands/
 │       └── start-phase.md
 ├── src/
+│   ├── config.py
 │   ├── agents/
 │   │   ├── __init__.py
 │   │   ├── orchestrator.py
@@ -218,19 +219,24 @@ Patterns established during development will be documented here.
 - MCP servers run as separate processes
 - Vector store persists to data/chroma/
 - All notes are markdown files in notes/
-- Use POE Python OpenAI for client creation:
+
+## Configuration
+
+All configuration is centralized in `src/config.py` for consistency:
 
 ```python
-import os
+from src.config import MODEL_NAME, API_BASE_URL, get_api_key
 import openai
 
+# Create OpenAI client using centralized config
 client = openai.OpenAI(
-    api_key=os.getenv("POE_API_KEY"),
-    base_url="https://api.poe.com/v1",
+    api_key=get_api_key(),  # Validates POE_API_KEY is set
+    base_url=API_BASE_URL,  # https://api.poe.com/v1
 )
 
+# Use centralized model name
 chat = client.chat.completions.create(
-    model="gpt-5-mini",
+    model=MODEL_NAME,  # gpt-5-mini
     messages=[{
         "role": "user",
         "content": "Your prompt here"
@@ -238,3 +244,17 @@ chat = client.chat.completions.create(
 )
 
 print(chat.choices[0].message.content)
+```
+
+**Available Configuration Constants:**
+
+- `MODEL_NAME`: The OpenAI model to use (`"gpt-5-mini"`)
+- `DEFAULT_MAX_ITERATIONS`: Default max ReAct loop iterations (`3`)
+- `API_BASE_URL`: POE API base URL (`"https://api.poe.com/v1"`)
+- `get_api_key()`: Function that retrieves and validates `POE_API_KEY` from environment
+
+**Benefits of Centralized Config:**
+- Single source of truth for all settings
+- Prevents inconsistencies (e.g., using wrong model)
+- Type hints for better IDE support
+- Easy to update settings project-wide
