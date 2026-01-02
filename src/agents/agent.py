@@ -47,7 +47,8 @@ Answer: [Final answer to the user's question]
 Available tools:
 {tool_descriptions}
 
-Always start with a Thought, then take an Action, wait for the Observation, and repeat until you can provide a final Answer.
+Always start with a Thought, then take an Action, wait for the Observation,
+and repeat until you can provide a final Answer.
 """
 
     def _parse_action(self, response: str) -> tuple[str, str] | None:

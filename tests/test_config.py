@@ -3,8 +3,9 @@ Tests for the centralized configuration module.
 """
 
 import os
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 
 def test_config_has_model_name():

@@ -108,9 +108,10 @@ def test_agent_runs_single_iteration():
     # Mock LLM response with Thought and Action
     mock_response = Mock()
     mock_response.choices = [Mock()]
-    mock_response.choices[0].message.content = (
-        "Thought: I should search for information\n"
-        "Action: search_web: python tutorials"
+    mock_response.choices[
+        0
+    ].message.content = (
+        "Thought: I should search for information\nAction: search_web: python tutorials"
     )
     mock_client.chat.completions.create.return_value = mock_response
 
@@ -133,9 +134,9 @@ def test_agent_respects_max_iterations():
     # Mock LLM to always return actions (never final answer)
     mock_response = Mock()
     mock_response.choices = [Mock()]
-    mock_response.choices[0].message.content = (
-        "Thought: Keep searching\n" "Action: search_web: more info"
-    )
+    mock_response.choices[
+        0
+    ].message.content = "Thought: Keep searching\nAction: search_web: more info"
     mock_client.chat.completions.create.return_value = mock_response
 
     agent = Agent(client=mock_client, max_iterations=2)
@@ -168,7 +169,7 @@ def test_agent_stops_when_final_answer_provided():
             choices=[
                 Mock(
                     message=Mock(
-                        content="Thought: I have enough info\nAnswer: Here is the final answer"
+                        content="Thought: I have enough info\nAnswer: Here is the final answer"  # noqa: E501
                     )
                 )
             ]

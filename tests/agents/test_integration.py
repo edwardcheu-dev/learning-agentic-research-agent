@@ -5,10 +5,11 @@ These tests verify the end-to-end behavior of the agent running through
 multiple iterations of the Thought → Action → Observation → Answer cycle.
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from src.agents.agent import Agent
-from src.agents.tools import get_all_tools
 
 
 def test_end_to_end_react_workflow():
@@ -19,7 +20,7 @@ def test_end_to_end_react_workflow():
     mock_response_1.choices = [
         MagicMock(
             message=MagicMock(
-                content="Thought: I need to search for Python programming.\nAction: search_web: Python programming"
+                content="Thought: I need to search for Python programming.\nAction: search_web: Python programming"  # noqa: E501
             )
         )
     ]
@@ -28,7 +29,7 @@ def test_end_to_end_react_workflow():
     mock_response_2.choices = [
         MagicMock(
             message=MagicMock(
-                content="Thought: I have the information I need.\nAnswer: Python is a popular programming language."
+                content="Thought: I have the information I need.\nAnswer: Python is a popular programming language."  # noqa: E501
             )
         )
     ]
@@ -63,7 +64,7 @@ def test_end_to_end_multi_action_workflow():
     mock_response_1.choices = [
         MagicMock(
             message=MagicMock(
-                content="Thought: Let me search for AI agents.\nAction: search_web: AI agents"
+                content="Thought: Let me search for AI agents.\nAction: search_web: AI agents"  # noqa: E501
             )
         )
     ]
@@ -72,7 +73,7 @@ def test_end_to_end_multi_action_workflow():
     mock_response_2.choices = [
         MagicMock(
             message=MagicMock(
-                content="Thought: I should save these findings.\nAction: save_note: AI Agents Summary | AI agents are autonomous systems."
+                content="Thought: I should save these findings.\nAction: save_note: AI Agents Summary | AI agents are autonomous systems."  # noqa: E501
             )
         )
     ]
@@ -81,7 +82,7 @@ def test_end_to_end_multi_action_workflow():
     mock_response_3.choices = [
         MagicMock(
             message=MagicMock(
-                content="Thought: Research complete and saved.\nAnswer: I found information about AI agents and saved it to your notes."
+                content="Thought: Research complete and saved.\nAnswer: I found information about AI agents and saved it to your notes."  # noqa: E501
             )
         )
     ]
@@ -101,8 +102,14 @@ def test_end_to_end_multi_action_workflow():
     assert "Observation: MOCK SEARCH RESULTS for 'AI agents'" in result
     assert "Action: save_note:" in result
     # Note: save_note returns the full input in its message
-    assert "MOCK SAVE: Note 'AI Agents Summary | AI agents are autonomous systems.' saved successfully" in result
-    assert "Answer: I found information about AI agents and saved it to your notes." in result
+    assert (
+        "MOCK SAVE: Note 'AI Agents Summary | AI agents are autonomous systems.' saved successfully"  # noqa: E501
+        in result
+    )
+    assert (
+        "Answer: I found information about AI agents and saved it to your notes."
+        in result
+    )
 
     # Verify: Agent made 3 LLM calls
     assert mock_client.chat.completions.create.call_count == 3

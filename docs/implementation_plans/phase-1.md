@@ -2,7 +2,7 @@ Phase 1: Basic Agentic Loop - Implementation Plan
 
 Overview
 
-Build a single ReAct-style agent (Think → Act → Observe → Repeat) with placeholder tools to 
+Build a single ReAct-style agent (Think → Act → Observe → Repeat) with placeholder tools to
 establish the foundation for the research assistant system.
 
 User Preferences:
@@ -171,15 +171,15 @@ Commits:
 
 Key Technical Decisions
 
-1. Placeholder Tools: Mock implementations return static data. Real integration comes in Phase 2 
+1. Placeholder Tools: Mock implementations return static data. Real integration comes in Phase 2
 (MCP servers).
-2. Visible Reasoning: Output accumulates all Thought/Action/Observation text for transparency and 
+2. Visible Reasoning: Output accumulates all Thought/Action/Observation text for transparency and
 learning.
 3. Max 3 Iterations: Conservative limit prevents API cost runaway during development.
-4. Action Parsing: Simple string matching for "Action: tool_name: input" format. Reliable when LLM 
+4. Action Parsing: Simple string matching for "Action: tool_name: input" format. Reliable when LLM
 follows prompt.
 5. Conversation History: Managed within run() method as messages list. Each call is independent.
-6. Testing Strategy: Mock OpenAI client responses for deterministic tests. Use side_effect for 
+6. Testing Strategy: Mock OpenAI client responses for deterministic tests. Use side_effect for
 multi-turn flows.
 
 System Prompt Format

@@ -1,0 +1,59 @@
+# Pre-commit hooks for code quality and consistency
+# See https://pre-commit.com for more information
+
+repos:
+  # Ruff - Fast Python linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+        name: Ruff linter (with auto-fix)
+      - id: ruff-format
+        name: Ruff formatter
+
+  # Pyright - Type checking
+  - repo: local
+    hooks:
+      - id: pyright
+        name: Pyright type checker
+        entry: uv run pyright
+        language: system
+        types: [python]
+        pass_filenames: false
+
+  # Pytest - Run tests before commit
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run pytest test suite
+        entry: uv run pytest
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  # Standard pre-commit hooks for file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+      - id: end-of-file-fixer
+        name: Ensure files end with newline
+      - id: check-yaml
+        name: Validate YAML syntax
+      - id: check-toml
+        name: Validate TOML syntax
+      - id: check-added-large-files
+        name: Prevent large files (>500KB)
+        args: [--maxkb=500]
+
+  # Commit message validation
+  - repo: local
+    hooks:
+      - id: commit-msg-prefix
+        name: Validate commit message prefix
+        entry: .git-hooks/validate-commit-msg.sh
+        language: script
+        stages: [commit-msg]
