@@ -124,3 +124,26 @@ def test_agent_runs_single_iteration():
     assert "Observation:" in result
     assert "MOCK SEARCH RESULTS" in result
     assert "python tutorials" in result
+
+
+def test_agent_respects_max_iterations():
+    """Agent should stop after max_iterations even without final answer."""
+    mock_client = Mock()
+
+    # Mock LLM to always return actions (never final answer)
+    mock_response = Mock()
+    mock_response.choices = [Mock()]
+    mock_response.choices[0].message.content = (
+        "Thought: Keep searching\n" "Action: search_web: more info"
+    )
+    mock_client.chat.completions.create.return_value = mock_response
+
+    agent = Agent(client=mock_client, max_iterations=2)
+    result = agent.run("Test query")
+
+    # Verify LLM was called exactly max_iterations times
+    assert mock_client.chat.completions.create.call_count == 2
+
+    # Verify result contains observations from both iterations
+    observation_count = result.count("Observation:")
+    assert observation_count == 2
