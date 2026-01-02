@@ -99,3 +99,28 @@ def test_format_observation_with_label():
 
     assert formatted.startswith("Observation:")
     assert "Some tool result here" in formatted
+
+
+def test_agent_runs_single_iteration():
+    """Agent should run one iteration: send prompt, parse action, execute tool."""
+    mock_client = Mock()
+
+    # Mock LLM response with Thought and Action
+    mock_response = Mock()
+    mock_response.choices = [Mock()]
+    mock_response.choices[0].message.content = (
+        "Thought: I should search for information\n"
+        "Action: search_web: python tutorials"
+    )
+    mock_client.chat.completions.create.return_value = mock_response
+
+    agent = Agent(client=mock_client, max_iterations=3)
+    result = agent.run("Find me python tutorials")
+
+    # Verify LLM was called
+    assert mock_client.chat.completions.create.called
+
+    # Verify result contains observation from tool execution
+    assert "Observation:" in result
+    assert "MOCK SEARCH RESULTS" in result
+    assert "python tutorials" in result
