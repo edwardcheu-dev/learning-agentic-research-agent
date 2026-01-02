@@ -29,3 +29,19 @@ def get_search_web_tool() -> Tool:
         description="Search the web for information about a query",
         function=_search_web_impl,
     )
+
+
+def _save_note_impl(content: str) -> str:
+    """Placeholder implementation of save note."""
+    lines = content.split("\n", 1)
+    title = lines[0].replace("title:", "").strip() if lines else "untitled"
+    return f"MOCK SAVE: Note '{title}' saved successfully"
+
+
+def get_save_note_tool() -> Tool:
+    """Returns the save_note tool."""
+    return Tool(
+        name="save_note",
+        description="Save a note with title and content",
+        function=_save_note_impl,
+    )
