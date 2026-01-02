@@ -42,3 +42,29 @@ Available tools:
 
 Always start with a Thought, then take an Action, wait for the Observation, and repeat until you can provide a final Answer.
 """
+
+    def _parse_action(self, response: str) -> tuple[str, str] | None:
+        """Parse action from LLM response.
+
+        Args:
+            response: LLM response text
+
+        Returns:
+            Tuple of (tool_name, tool_input) if action found, None otherwise
+        """
+        # Look for "Action: " in the response
+        if "Action:" not in response:
+            return None
+
+        # Extract the action line
+        for line in response.split("\n"):
+            if line.strip().startswith("Action:"):
+                # Remove "Action: " prefix
+                action_text = line.strip()[7:].strip()
+
+                # Split on first ":" to separate tool_name from input
+                if ":" in action_text:
+                    tool_name, tool_input = action_text.split(":", 1)
+                    return (tool_name.strip(), tool_input.strip())
+
+        return None
