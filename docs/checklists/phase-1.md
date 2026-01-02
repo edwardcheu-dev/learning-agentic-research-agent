@@ -17,11 +17,11 @@ Build a single agent with ReAct-style reasoning loop (Think → Act → Observe 
 - [x] Test: get_all_tools returns complete tool list
 - [x] Implement: get_all_tools function
 
-## GROUP 3: Agent Core Structure
-- [ ] Test: Agent initializes with client, max_iterations, tools list
-- [ ] Implement: Agent.__init__ with attributes
-- [ ] Test: Agent builds system prompt with ReAct instructions and tool descriptions
-- [ ] Implement: _build_system_prompt() method
+## GROUP 3: Agent Core Structure ✅
+- [x] Test: Agent initializes with client, max_iterations, tools list
+- [x] Implement: Agent.__init__ with attributes
+- [x] Test: Agent builds system prompt with ReAct instructions and tool descriptions
+- [x] Implement: _build_system_prompt() method
 
 ## GROUP 4: ReAct Loop Components
 - [ ] Test: Parse action from LLM response (extracts tool_name and input)

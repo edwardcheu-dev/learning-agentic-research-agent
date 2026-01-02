@@ -128,6 +128,145 @@ Each commit follows the prefix convention:
 
 ---
 
+### Session 2: 2026-01-02 - GROUP 3
+
+#### What We Built
+
+**GROUP 3: Agent Core Structure**
+- Created the `Agent` class in `src/agents/agent.py`
+- Implemented `__init__` with client, max_iterations, and tools initialization
+- Implemented `_build_system_prompt()` to generate ReAct-style system prompts
+
+#### Key Decisions
+
+1. **Agent Initialization**: Agent automatically loads all available tools via `get_all_tools()`
+   - **Rationale**: Simplifies initialization and ensures all tools are available
+   - **Trade-off**: Can't selectively enable/disable tools (not needed in Phase 1)
+
+2. **System Prompt Format**: Used clear, explicit ReAct format with labeled sections
+   - **Rationale**: Makes it easier for LLM to follow the pattern
+   - **Structure**: Thought → Action → Observation → Answer
+   - **Tool Listing**: Dynamically includes tool names and descriptions
+
+3. **Private Method Naming**: Used `_build_system_prompt()` with underscore prefix
+   - **Rationale**: Internal helper method, not part of public API
+   - **Pattern**: Will continue for other internal methods like `_parse_action()`, `_execute_tool()`
+
+#### Code Highlights
+
+**Agent Initialization (src/agents/agent.py:9-18)**
+```python
+def __init__(self, client, max_iterations: int):
+    """Initialize the agent.
+
+    Args:
+        client: OpenAI client for LLM calls
+        max_iterations: Maximum number of reasoning iterations
+    """
+    self.client = client
+    self.max_iterations = max_iterations
+    self.tools = get_all_tools()
+```
+
+**System Prompt Builder (src/agents/agent.py:20-44)**
+```python
+def _build_system_prompt(self) -> str:
+    """Build the system prompt with ReAct instructions and tool descriptions."""
+    tool_descriptions = "\n".join(
+        f"- {tool.name}: {tool.description}" for tool in self.tools
+    )
+
+    return f"""You are a ReAct (Reasoning and Acting) agent.
+
+Answer the user's question by following this format:
+
+Thought: [Your reasoning about what to do next]
+Action: [tool_name: input]
+Observation: [Result from the tool]
+... (repeat Thought/Action/Observation as needed)
+Answer: [Final answer to the user's question]
+
+Available tools:
+{tool_descriptions}
+
+Always start with a Thought, then take an Action, wait for the Observation, and repeat until you can provide a final Answer.
+"""
+```
+
+**Sample System Prompt Output**:
+```
+You are a ReAct (Reasoning and Acting) agent.
+
+Answer the user's question by following this format:
+
+Thought: [Your reasoning about what to do next]
+Action: [tool_name: input]
+Observation: [Result from the tool]
+... (repeat Thought/Action/Observation as needed)
+Answer: [Final answer to the user's question]
+
+Available tools:
+- search_web: Search the web for information
+- save_note: Save a note to the knowledge base
+
+Always start with a Thought, then take an Action, wait for the Observation, and repeat until you can provide a final Answer.
+```
+
+#### Testing Pattern
+
+**Test for Initialization (tests/agents/test_agent.py:8-15)**
+```python
+def test_agent_initializes_with_client():
+    """Agent should initialize with OpenAI client and tools."""
+    mock_client = Mock()
+    agent = Agent(client=mock_client, max_iterations=3)
+
+    assert agent.client == mock_client
+    assert agent.max_iterations == 3
+    assert len(agent.tools) == 2  # search_web and save_note
+```
+
+**Test for System Prompt (tests/agents/test_agent.py:18-36)**
+```python
+def test_agent_builds_system_prompt_with_react_instructions():
+    """Agent should build system prompt with ReAct format and tool descriptions."""
+    mock_client = Mock()
+    agent = Agent(client=mock_client, max_iterations=3)
+
+    prompt = agent._build_system_prompt()
+
+    assert isinstance(prompt, str)
+    # Check for ReAct-style keywords
+    assert "Thought:" in prompt
+    assert "Action:" in prompt
+    assert "Observation:" in prompt
+    assert "Answer:" in prompt
+    # Check for tool descriptions
+    assert "search_web" in prompt
+    assert "save_note" in prompt
+```
+
+#### Lessons Learned
+
+1. **TDD Workflow Enforcement**: The user caught me implementing before committing the test - following strict TDD discipline is crucial for maintaining project standards
+
+2. **Dynamic Tool Listing**: Using a loop to build tool descriptions ensures the prompt automatically updates when new tools are added
+
+3. **Mock Usage**: Using `unittest.mock.Mock()` for the OpenAI client makes tests fast and deterministic without requiring API keys
+
+4. **Format String Clarity**: Multi-line f-strings with triple quotes make prompt templates more readable
+
+#### Git History
+
+```
+d75f3f1 test: Agent initializes with client, max_iterations, and tools list
+b895715 feat: implement Agent.__init__ with client, max_iterations, and tools
+d38bd0d test: Agent builds system prompt with ReAct instructions and tool descriptions
+dcb3302 feat: implement _build_system_prompt() with ReAct format
+```
+
+---
+
 ## Phase Summary
 
 (Written at the end of Phase 1 - high-level summary for MASTER_LOG.md)
