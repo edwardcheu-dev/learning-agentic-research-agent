@@ -36,15 +36,11 @@ Follow this workflow:
    Context Management:
    - Monitor context length - when it gets long (>50% budget), suggest /clear
    - Before clearing, commit any pending work and update the checklist
-   - AFTER /clear, follow this prompt pattern:
+   - AFTER /clear, use the resume-phase command to quickly restore context:
 
-     "/clear
+     "/resume-phase $ARGUMENTS"
 
-     We're working on Phase $ARGUMENTS. Current progress is tracked in
-     docs/checklists/phase-$ARGUMENTS.md. Continue with the next unchecked item.
-     Reference .claude/commands/start-phase.md for the implement and document workflow.
-     You're now in implement phase."
-
+   - This command will load progress, display the next item, and jump into IMPLEMENT mode
    - See docs/reference/sample-prompts.md "When Context Gets Long" section
 
 4. DOCUMENT (after completing a logical group of items):
