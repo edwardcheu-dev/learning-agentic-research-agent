@@ -45,3 +45,11 @@ def get_save_note_tool() -> Tool:
         description="Save a note with title and content",
         function=_save_note_impl,
     )
+
+
+def get_all_tools() -> list[Tool]:
+    """Returns all available tools."""
+    return [
+        get_search_web_tool(),
+        get_save_note_tool(),
+    ]
