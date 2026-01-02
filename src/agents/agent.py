@@ -1,6 +1,7 @@
 """Basic ReAct agent implementation."""
 
 from src.agents.tools import get_all_tools
+from src.config import MODEL_NAME
 
 
 class Agent:
@@ -125,7 +126,7 @@ Always start with a Thought, then take an Action, wait for the Observation, and 
         for iteration in range(self.max_iterations):
             # Call LLM
             response = self.client.chat.completions.create(
-                model="gpt-4", messages=messages
+                model=MODEL_NAME, messages=messages
             )
 
             llm_response = response.choices[0].message.content
