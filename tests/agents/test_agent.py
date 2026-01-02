@@ -87,3 +87,15 @@ def test_execute_unknown_tool_raises_error():
     except ValueError as e:
         assert "Unknown tool" in str(e)
         assert "nonexistent_tool" in str(e)
+
+
+def test_format_observation_with_label():
+    """Agent should format observations with 'Observation:' label."""
+    mock_client = Mock()
+    agent = Agent(client=mock_client, max_iterations=3)
+
+    result = "Some tool result here"
+    formatted = agent._format_observation(result)
+
+    assert formatted.startswith("Observation:")
+    assert "Some tool result here" in formatted
