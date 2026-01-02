@@ -89,3 +89,14 @@ Always start with a Thought, then take an Action, wait for the Observation, and 
 
         # Tool not found
         raise ValueError(f"Unknown tool: {tool_name}")
+
+    def _format_observation(self, result: str) -> str:
+        """Format tool result as an observation.
+
+        Args:
+            result: Tool execution result
+
+        Returns:
+            Formatted observation string with label
+        """
+        return f"Observation: {result}"
