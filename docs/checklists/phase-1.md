@@ -33,13 +33,13 @@ Build a single agent with ReAct-style reasoning loop (Think → Act → Observe 
 - [x] Test: Format observation with label
 - [x] Implement: _format_observation() method
 
-## GROUP 5: Main Run Loop
-- [ ] Test: Agent runs single iteration with mocked LLM response
-- [ ] Implement: run() method with loop logic
-- [ ] Test: Agent respects max_iterations limit
-- [ ] Verify/Refactor: Ensure loop respects limit
-- [ ] Test: Agent stops when final answer provided
-- [ ] Verify: Current implementation handles Answer detection
+## GROUP 5: Main Run Loop ✅
+- [x] Test: Agent runs single iteration with mocked LLM response
+- [x] Implement: run() method with loop logic
+- [x] Test: Agent respects max_iterations limit
+- [x] Verify/Refactor: Ensure loop respects limit (implementation already correct)
+- [x] Test: Agent stops when final answer provided
+- [x] Verify: Current implementation handles Answer detection (implementation already correct)
 
 ## GROUP 6: Integration
 - [ ] Test: End-to-end workflow with mocked responses (Thought→Action→Observation→Answer)

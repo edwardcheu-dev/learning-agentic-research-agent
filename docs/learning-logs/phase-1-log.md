@@ -402,6 +402,169 @@ a73aea9 feat: implement _format_observation() to label tool results
 
 ---
 
+### Session 4: 2026-01-02 - GROUP 5
+
+#### What We Built
+
+**GROUP 5: Main Run Loop**
+- Implemented `run()` method that orchestrates the complete ReAct loop
+- Integrated all components: system prompt, action parsing, tool execution, observation formatting
+- Handles max_iterations limit and early stopping on final answer
+
+#### Key Decisions
+
+1. **Conversation Tracking**: Return full conversation history as a string
+   - **Rationale**: Makes debugging easier and provides transparency into agent reasoning
+   - **Format**: Includes user query, all thoughts/actions, observations, and final answer
+   - **Trade-off**: More verbose output, but valuable for understanding agent behavior
+
+2. **Message History Management**: Maintain OpenAI-style message list
+   - **Rationale**: Required for multi-turn LLM conversations
+   - **Pattern**: System prompt → User query → Assistant response → User observation → ...
+   - **Benefit**: LLM has full context of previous actions and observations
+
+3. **Early Exit on Final Answer**: Break loop when `_parse_action()` returns `None`
+   - **Rationale**: Allows agent to finish before max_iterations if it has the answer
+   - **Detection**: No "Action:" in response indicates final answer provided
+   - **Efficiency**: Saves API calls when agent completes task early
+
+4. **Model Hardcoded**: Used `"gpt-4"` in LLM call
+   - **Rationale**: Simple for Phase 1; will make configurable in later phases
+   - **Note**: Can be parameterized in future refactoring
+
+#### Code Highlights
+
+**Main Run Loop (src/agents/agent.py:104-153)**
+```python
+def run(self, query: str) -> str:
+    """Run the agent on a query using ReAct loop."""
+    system_prompt = self._build_system_prompt()
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": query},
+    ]
+
+    conversation = f"User: {query}\n\n"
+
+    # ReAct loop
+    for iteration in range(self.max_iterations):
+        # Call LLM
+        response = self.client.chat.completions.create(
+            model="gpt-4", messages=messages
+        )
+
+        llm_response = response.choices[0].message.content
+        conversation += f"{llm_response}\n\n"
+
+        # Parse action
+        action = self._parse_action(llm_response)
+
+        # If no action, agent has provided final answer
+        if action is None:
+            break
+
+        # Execute tool
+        tool_name, tool_input = action
+        tool_result = self._execute_tool(tool_name, tool_input)
+
+        # Format observation
+        observation = self._format_observation(tool_result)
+        conversation += f"{observation}\n\n"
+
+        # Add to conversation for next iteration
+        messages.append({"role": "assistant", "content": llm_response})
+        messages.append({"role": "user", "content": observation})
+
+    return conversation.strip()
+```
+
+**Flow Diagram**:
+```
+User Query
+    ↓
+[System Prompt + Query] → LLM
+    ↓
+Parse Response
+    ↓
+Action Found?
+    ├─ Yes → Execute Tool → Format Observation → Add to Messages → Loop
+    └─ No  → Return Conversation (Final Answer)
+```
+
+#### Testing Pattern
+
+**Single Iteration Test (tests/agents/test_agent.py:104-126)**
+```python
+def test_agent_runs_single_iteration():
+    mock_client = Mock()
+    mock_response = Mock()
+    mock_response.choices[0].message.content = (
+        "Thought: I should search for information\n"
+        "Action: search_web: python tutorials"
+    )
+    mock_client.chat.completions.create.return_value = mock_response
+
+    agent = Agent(client=mock_client, max_iterations=3)
+    result = agent.run("Find me python tutorials")
+
+    assert "Observation:" in result
+    assert "MOCK SEARCH RESULTS" in result
+```
+
+**Max Iterations Test (tests/agents/test_agent.py:129-149)**
+```python
+def test_agent_respects_max_iterations():
+    # Mock LLM to always return actions (never final answer)
+    agent = Agent(client=mock_client, max_iterations=2)
+    result = agent.run("Test query")
+
+    # Should call LLM exactly max_iterations times
+    assert mock_client.chat.completions.create.call_count == 2
+    assert result.count("Observation:") == 2
+```
+
+**Early Stopping Test (tests/agents/test_agent.py:152-190)**
+```python
+def test_agent_stops_when_final_answer_provided():
+    # First call: Action, Second call: Final Answer
+    responses = [
+        Mock(message=Mock(content="Thought: I'll search\nAction: search_web: info")),
+        Mock(message=Mock(content="Answer: Here is the final answer")),
+    ]
+    mock_client.chat.completions.create.side_effect = responses
+
+    agent = Agent(client=mock_client, max_iterations=5)
+    result = agent.run("Test query")
+
+    # Should stop after 2 calls, not max_iterations (5)
+    assert mock_client.chat.completions.create.call_count == 2
+    assert "Answer:" in result
+```
+
+#### Lessons Learned
+
+1. **Mock Side Effects**: Using `side_effect` with a list of mocks allows testing multi-turn conversations
+
+2. **Conversation String Building**: Accumulating conversation as a string makes assertions easier than parsing structured data
+
+3. **Loop Exit Conditions**: Two ways to exit: max_iterations reached OR final answer detected
+
+4. **Message Role Pattern**: OpenAI API expects alternating assistant/user messages after initial system/user pair
+
+5. **Test Verification Levels**: Count assertions (`call_count`, `count("Observation:")`) verify behavior without over-specifying implementation
+
+#### Git History
+
+```
+ac4659c test: Agent runs single iteration with mocked LLM response
+04e7775 feat: implement run() method with ReAct loop logic
+f331939 test: Agent respects max_iterations limit
+f9dbc54 test: Agent stops when final answer provided
+```
+
+---
+
 ## Phase Summary
 
 (Written at the end of Phase 1 - high-level summary for MASTER_LOG.md)
