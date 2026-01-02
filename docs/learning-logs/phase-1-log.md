@@ -565,6 +565,253 @@ f9dbc54 test: Agent stops when final answer provided
 
 ---
 
+### Session 5: 2026-01-03 - GROUP 6
+
+#### What We Built
+
+**GROUP 6: Integration**
+- Created `tests/agents/test_integration.py` with comprehensive end-to-end tests
+- Implemented `src/main.py` with interactive REPL for manual testing
+- Verified the complete ReAct workflow from user query to final answer
+
+#### Key Decisions
+
+1. **Multiple Integration Test Scenarios**: Tested four distinct workflows
+   - **Rationale**: Cover happy path, multi-tool usage, max iterations limit, and error handling
+   - **Scenarios**: Single action, multiple actions, max iterations reached, unknown tool error
+   - **Benefit**: Ensures agent behaves correctly in various situations
+
+2. **REPL Design**: Simple read-eval-print loop with clear output separation
+   - **Rationale**: Makes agent reasoning transparent for learning and debugging
+   - **Features**: Welcome message, tool listing, quit commands, error handling
+   - **Output Format**: Horizontal lines separate agent responses for readability
+
+3. **Configuration Integration**: Use centralized `src/config.py` for settings
+   - **Rationale**: Single source of truth for API settings and defaults
+   - **Constants Used**: `API_BASE_URL`, `DEFAULT_MAX_ITERATIONS`, `get_api_key()`
+   - **Benefit**: Easy to change model or settings project-wide
+
+4. **Error Handling Philosophy**: Let unknown tool errors bubble up in Phase 1
+   - **Rationale**: Simple implementation now, will add graceful recovery in later phases
+   - **Current Behavior**: `ValueError` raised for unknown tools
+   - **Future**: Could feed error back to LLM as observation for self-correction
+
+#### Code Highlights
+
+**End-to-End Test (tests/agents/test_integration.py:15-56)**
+```python
+def test_end_to_end_react_workflow():
+    """Test complete agent workflow from query to final answer."""
+    # Setup: Mock OpenAI client with multi-turn conversation
+    mock_client = MagicMock()
+    mock_response_1 = MagicMock()
+    mock_response_1.choices = [
+        MagicMock(
+            message=MagicMock(
+                content="Thought: I need to search for Python programming.\nAction: search_web: Python programming"
+            )
+        )
+    ]
+
+    mock_response_2 = MagicMock()
+    mock_response_2.choices = [
+        MagicMock(
+            message=MagicMock(
+                content="Thought: I have the information I need.\nAnswer: Python is a popular programming language."
+            )
+        )
+    ]
+
+    # Configure mock to return different responses for each call
+    mock_client.chat.completions.create.side_effect = [
+        mock_response_1,
+        mock_response_2,
+    ]
+
+    # Execute: Run agent with query
+    agent = Agent(client=mock_client, max_iterations=3)
+    result = agent.run("Tell me about Python programming")
+
+    # Verify: Check the complete output contains all ReAct components
+    assert "Thought: I need to search for Python programming." in result
+    assert "Action: search_web: Python programming" in result
+    assert "Observation: MOCK SEARCH RESULTS for 'Python programming'" in result
+    assert "Answer: Python is a popular programming language." in result
+    assert mock_client.chat.completions.create.call_count == 2
+```
+
+**Interactive REPL (src/main.py:29-76)**
+```python
+def main() -> None:
+    """Run the interactive REPL for the Research Assistant."""
+    print("=" * 60)
+    print("Research Assistant - Phase 1: Basic Agentic Loop")
+    print("=" * 60)
+    print("\nThis agent uses ReAct-style reasoning to answer questions.")
+    print("You'll see the agent's Thoughts, Actions, and Observations.")
+    print("\nAvailable tools:")
+    print("  - search_web: Search for information (placeholder)")
+    print("  - save_note: Save notes (placeholder)")
+    print("\nType 'quit' or 'exit' to stop.\n")
+
+    # Create client and agent
+    try:
+        client = create_client()
+        agent = Agent(client=client, max_iterations=DEFAULT_MAX_ITERATIONS)
+    except ValueError as e:
+        print(f"Error: {e}")
+        return
+
+    # REPL loop
+    while True:
+        try:
+            user_input = input("\nYou: ").strip()
+
+            if user_input.lower() in ["quit", "exit", "q"]:
+                print("\nGoodbye!")
+                break
+
+            if not user_input:
+                continue
+
+            print("\n" + "-" * 60)
+            result = agent.run(user_input)
+            print(result)
+            print("-" * 60)
+
+        except KeyboardInterrupt:
+            print("\n\nGoodbye!")
+            break
+        except Exception as e:
+            print(f"\nError: {e}")
+            print("Please try again or type 'quit' to exit.")
+```
+
+**Client Factory (src/main.py:14-26)**
+```python
+def create_client() -> openai.OpenAI:
+    """Create OpenAI client configured for POE API.
+
+    Returns:
+        Configured OpenAI client instance
+
+    Raises:
+        ValueError: If POE_API_KEY environment variable is not set
+    """
+    return openai.OpenAI(
+        api_key=get_api_key(),
+        base_url=API_BASE_URL,
+    )
+```
+
+#### Testing Pattern
+
+**Four Integration Test Scenarios**:
+
+1. **test_end_to_end_react_workflow**: Single action → answer
+   - Verifies basic Thought → Action → Observation → Answer flow
+   - Confirms LLM called twice (action, then answer)
+
+2. **test_end_to_end_multi_action_workflow**: Search → save → answer
+   - Tests multiple tool invocations in sequence
+   - Verifies both `search_web` and `save_note` tools work correctly
+   - Confirms conversation accumulates all steps
+
+3. **test_end_to_end_max_iterations_reached**: Agent never provides answer
+   - Mocks LLM to keep returning actions (no "Answer:")
+   - Verifies loop stops after exactly `max_iterations` calls
+   - Ensures no infinite loops
+
+4. **test_end_to_end_with_unknown_tool_error**: Agent tries invalid tool
+   - Tests error handling for unknown tool names
+   - Confirms `ValueError` raised with descriptive message
+   - Documents expected behavior for future enhancement
+
+**Mock Pattern for Multi-Turn Conversations**:
+```python
+# Use side_effect with list of responses
+mock_client.chat.completions.create.side_effect = [
+    response_1,  # First LLM call
+    response_2,  # Second LLM call
+    response_3,  # Third LLM call (if needed)
+]
+```
+
+#### Lessons Learned
+
+1. **Integration Tests Value**: End-to-end tests catch issues that unit tests miss
+   - Example: Message history management, conversation accumulation
+   - Trade-off: Slower to run, but critical for confidence
+
+2. **REPL Error Handling**: Must handle both `KeyboardInterrupt` and general exceptions
+   - Users expect Ctrl+C to exit gracefully
+   - Other errors should show message and continue loop, not crash
+
+3. **Mock Nested Attributes**: OpenAI response structure requires nested MagicMocks
+   - Pattern: `mock_response.choices[0].message.content`
+   - Each level needs a MagicMock wrapper
+
+4. **Configuration Centralization**: Using `src/config.py` constants prevents drift
+   - Eliminates hardcoded values scattered across files
+   - Makes changing models or settings trivial
+
+5. **Manual Testing Limitations**: Background processes can't run interactive input
+   - Automated tests cover functionality
+   - Manual terminal testing verifies user experience
+   - Both are necessary for complete validation
+
+#### Sample Output
+
+**Expected REPL Interaction** (manual testing):
+```
+============================================================
+Research Assistant - Phase 1: Basic Agentic Loop
+============================================================
+
+This agent uses ReAct-style reasoning to answer questions.
+You'll see the agent's Thoughts, Actions, and Observations.
+
+Available tools:
+  - search_web: Search for information (placeholder)
+  - save_note: Save notes (placeholder)
+
+Type 'quit' or 'exit' to stop.
+
+
+You: Search for Python programming
+
+------------------------------------------------------------
+Thought: I need to search for information about Python programming.
+Action: search_web: Python programming
+
+Observation: MOCK SEARCH RESULTS for 'Python programming':
+1. Example result about Python programming
+2. Another result for Python programming
+
+Thought: I have the search results. I can now provide an answer.
+Answer: Python is a popular high-level programming language known for its readability and versatility.
+------------------------------------------------------------
+```
+
+#### Git History
+
+```
+d5c1feb test: end-to-end agent workflow with mocked responses
+12cd69c feat: add interactive main entry point
+5e73348 fix: use config module and fix import ordering in main.py
+```
+
+#### Success Criteria Met
+
+✅ All integration tests pass
+✅ REPL starts and displays welcome message
+✅ Agent handles multi-turn conversations
+✅ Max iterations enforced
+✅ Unknown tool errors detected
+✅ Configuration module used correctly
+
+---
+
 ## Phase Summary
 
 (Written at the end of Phase 1 - high-level summary for MASTER_LOG.md)

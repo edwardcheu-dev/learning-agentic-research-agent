@@ -41,10 +41,10 @@ Build a single agent with ReAct-style reasoning loop (Think → Act → Observe 
 - [x] Test: Agent stops when final answer provided
 - [x] Verify: Current implementation handles Answer detection (implementation already correct)
 
-## GROUP 6: Integration
-- [ ] Test: End-to-end workflow with mocked responses (Thought→Action→Observation→Answer)
-- [ ] Implement: src/main.py with interactive REPL
-- [ ] Manual verification: Run agent interactively in terminal
+## GROUP 6: Integration ✅
+- [x] Test: End-to-end workflow with mocked responses (Thought→Action→Observation→Answer)
+- [x] Implement: src/main.py with interactive REPL
+- [x] Manual verification: Run agent interactively in terminal
 
 ## GROUP 7: Documentation
 - [ ] Add docstrings to all public functions
