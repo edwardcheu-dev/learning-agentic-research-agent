@@ -41,7 +41,9 @@ Follow this workflow:
      "/clear
 
      We're working on Phase $ARGUMENTS. Current progress is tracked in
-     docs/checklists/phase-$ARGUMENTS.md. Continue with the next unchecked item."
+     docs/checklists/phase-$ARGUMENTS.md. Continue with the next unchecked item.
+     Reference .claude/commands/start-phase.md for the implement and document workflow.
+     You're now in implement phase."
 
    - See docs/reference/sample-prompts.md "When Context Gets Long" section
 
@@ -57,8 +59,22 @@ Follow this workflow:
      git commit -m "docs: update implementation plan, checklist, and learning log after GROUP X"
 
    After documenting:
-   - Summarize what was implemented and how it connects to the bigger picture
-   - Recommend any updates to CLAUDE.md based on patterns established
+   - Provide a standardized summary in the following format:
+
+     ## Summary
+     [Brief description of what was built in this GROUP]
+
+     ## How It Connects to the Bigger Picture
+     - GROUP 1-X: [What's been completed] ✅
+     - Current GROUP: [What was just finished] ✅
+     - Next GROUP: [What's coming next]
+
+     ## Token Usage
+     Currently at ~[X]k / 200k tokens ([Y]%) - [assessment of remaining capacity]
+
+     ## CLAUDE.md Updates
+     [Any patterns/updates needed for CLAUDE.md, or "No updates needed yet"]
+
    - ASK USER if they want to /clear before continuing to next GROUP
 
 Do not write any code until the checklist is approved. Start with exploration now.
