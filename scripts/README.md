@@ -12,8 +12,11 @@ Comprehensive POE API model testing and comparison script.
 
 **Usage**:
 ```bash
-# Run from project root
+# Run from project root (uses cache by default)
 uv run python scripts/test_poe_models.py
+
+# Force retest all models (ignore cache)
+uv run python scripts/test_poe_models.py --force-retest
 ```
 
 **What it does**:
@@ -26,8 +29,23 @@ uv run python scripts/test_poe_models.py
 **Output**:
 - Report: `docs/model-comparison-YYYY-MM-DD.md`
 - Logs: `test-api-calls.log`, `api-call-audit.log`
+- Cache: `data/model-test-cache.json` (auto-generated, gitignored)
 
-**⚠️ Warning**: Makes real API calls (costs money!)
+**Cache Behavior**:
+- Results are cached in `data/model-test-cache.json`
+- Cache uses **pydantic validation** for data integrity
+- Subsequent runs use cache (no API calls, FREE!)
+- Cache warns if >30 days old
+- Use `--force-retest` to bypass cache and retest all models
+
+**Cache Validation**:
+The script uses pydantic schemas to validate cache structure:
+- Ensures all required fields present (availability, react, reliability)
+- Validates data types (bool, float, str, etc.)
+- Auto-rejects corrupted cache (falls back to retesting)
+- Provides clear error messages if validation fails
+
+**⚠️ Warning**: Makes real API calls (costs money!) unless using cache
 
 ---
 
@@ -41,7 +59,14 @@ uv run python scripts/test_poe_models.py
 
 1. **Test the new model first**:
    ```bash
+   # First run: tests all models, saves cache
    uv run python scripts/test_poe_models.py
+
+   # Subsequent runs: uses cache (FREE!)
+   uv run python scripts/test_poe_models.py
+
+   # Force retest if needed (e.g., POE API updated)
+   uv run python scripts/test_poe_models.py --force-retest
    ```
 
 2. **Review the generated report**:
@@ -174,6 +199,36 @@ Each test run makes approximately:
 ---
 
 ## Troubleshooting
+
+### Cache is Corrupted
+
+**Problem**: Script reports "Cache validation failed" or "Cache corrupted"
+
+**Solution**:
+1. Delete the cache file:
+   ```bash
+   rm data/model-test-cache.json
+   ```
+2. Run script again to regenerate cache:
+   ```bash
+   uv run python scripts/test_poe_models.py
+   ```
+
+**Technical Details**:
+The cache uses pydantic schemas for validation. If the cache structure doesn't match
+the expected schema (e.g., missing fields, wrong types), pydantic will reject it and
+the script will fall back to retesting all models.
+
+### Cache is Out of Date
+
+**Problem**: Script warns "Cache is X days old (>30 days)"
+
+**Solution**:
+- Option 1: Ignore warning if models haven't changed
+- Option 2: Force retest to refresh cache:
+  ```bash
+  uv run python scripts/test_poe_models.py --force-retest
+  ```
 
 ### Script Fails with "Model not found"
 

@@ -9,6 +9,7 @@ dependencies = [
     "chromadb>=1.4.0",
     "fastmcp>=2.14.2",
     "openai>=2.14.0",
+    "pydantic>=2.12.5",
 ]
 
 [dependency-groups]

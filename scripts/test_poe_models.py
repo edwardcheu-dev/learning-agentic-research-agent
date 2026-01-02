@@ -11,17 +11,68 @@ Output:
 WARNING: Makes real API calls (costs money!)
 """
 
+import argparse
+import json
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import openai
+from pydantic import BaseModel, Field, ValidationError
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.config import API_BASE_URL, DEFAULT_MAX_TOKENS, get_api_key
+
+# Pydantic schemas for cache validation
+
+
+class AvailabilityResult(BaseModel):
+    """Schema for model availability test results."""
+
+    available: bool
+    error: str | None
+    response_time: float | None
+    result: str | None
+
+
+class ReactResult(BaseModel):
+    """Schema for ReAct compliance test results."""
+
+    compliant: bool
+    has_thought: bool
+    has_action: bool
+    response: str
+
+
+class ReliabilityResult(BaseModel):
+    """Schema for reliability test results."""
+
+    success_rate: float
+    successes: int
+    total: int
+    failures: list[str]
+
+
+class ModelTestResult(BaseModel):
+    """Schema for complete model test results."""
+
+    availability: AvailabilityResult
+    react: ReactResult
+    reliability: ReliabilityResult
+    grade: str = Field(default="F")
+    tested_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+
+
+class TestCache(BaseModel):
+    """Schema for test results cache."""
+
+    cache_version: str = Field(default="1.0")
+    last_updated: str = Field(default_factory=lambda: datetime.now().isoformat())
+    models: dict[str, ModelTestResult]
+
 
 # Configuration
 MODELS_TO_TEST = [
@@ -56,6 +107,79 @@ Available tools:
 - search_web: Search the web for information
 
 Always start with a Thought, then take an Action."""
+
+# Cache utilities
+
+
+def get_cache_path() -> Path:
+    """Get path to cache file."""
+    return Path(__file__).parent.parent / "data" / "model-test-cache.json"
+
+
+def load_cache(force_retest: bool = False) -> TestCache | None:
+    """Load cached test results with pydantic validation.
+
+    Args:
+        force_retest: If True, ignore cache and return None
+
+    Returns:
+        Validated TestCache object or None if cache invalid/missing
+    """
+    if force_retest:
+        print("🔄 Force retest enabled, ignoring cache...")
+        return None
+
+    cache_path = get_cache_path()
+
+    if not cache_path.exists():
+        print(f"📝 No cache found at {cache_path}")
+        return None
+
+    try:
+        with open(cache_path) as f:
+            data = json.load(f)
+
+        cache = TestCache.model_validate(data)
+
+        # Check cache age
+        cache_age = datetime.now() - datetime.fromisoformat(cache.last_updated)
+        if cache_age.days > 30:
+            print(
+                f"⚠️  Cache is {cache_age.days} days old (>30 days). "
+                "Consider --force-retest."
+            )
+
+        print(
+            f"✅ Loaded cache with {len(cache.models)} models "
+            f"(updated: {cache.last_updated[:10]})"
+        )
+        return cache
+
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        print(f"⚠️  Cache file corrupted ({e}), ignoring...")
+        return None
+    except ValidationError as e:
+        print(f"⚠️  Cache validation failed ({e}), ignoring...")
+        return None
+
+
+def save_cache(cache: TestCache) -> None:
+    """Save test results to cache with validation.
+
+    Args:
+        cache: Validated TestCache object to save
+    """
+    cache_path = get_cache_path()
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Update timestamp
+    cache.last_updated = datetime.now().isoformat()
+
+    with open(cache_path, "w") as f:
+        # Use model_dump() to convert pydantic model to dict
+        json.dump(cache.model_dump(), f, indent=2)
+
+    print(f"💾 Cache saved to {cache_path}")
 
 
 def test_model_availability(client: openai.OpenAI, model: str) -> dict[str, Any]:
@@ -130,6 +254,16 @@ def test_react_compliance(client: openai.OpenAI, model: str) -> dict[str, Any]:
         )
 
         result = response.choices[0].message.content
+
+        if result is None:
+            print("❌ Empty response")
+            return {
+                "compliant": False,
+                "has_thought": False,
+                "has_action": False,
+                "response": "ERROR: Empty response from model",
+            }
+
         has_thought = "Thought:" in result
         has_action = "Action:" in result
         compliant = has_thought and has_action
@@ -186,11 +320,11 @@ def test_reliability(client: openai.OpenAI, model: str) -> dict[str, Any]:
             if result and len(result) > 0:
                 successes += 1
             else:
-                failures.append(f"Query {i+1}: Empty response")
+                failures.append(f"Query {i + 1}: Empty response")
 
         except Exception as e:
             error_msg = str(e)[:50]
-            failures.append(f"Query {i+1}: {error_msg}")
+            failures.append(f"Query {i + 1}: {error_msg}")
 
     success_rate = successes / len(TEST_QUERIES)
     print(f"{successes}/{len(TEST_QUERIES)} ({success_rate:.0%})")
@@ -312,8 +446,7 @@ Generated by: `scripts/test_poe_models.py`
         rel = results["reliability"]
         success_rate = f"{rel['success_rate']:.0%}"
         report += (
-            f"- **Reliability**: {rel['successes']}/{rel['total']} "
-            f"({success_rate})\n"
+            f"- **Reliability**: {rel['successes']}/{rel['total']} ({success_rate})\n"
         )
 
         if rel["failures"]:
@@ -354,9 +487,7 @@ Generated by: `scripts/test_poe_models.py`
     # Methodology
     report += "## Test Methodology\n\n"
     report += "- **Availability Test**: Simple API call with timeout\n"
-    report += (
-        "- **ReAct Compliance**: Check for 'Thought:' and 'Action:' " "in response\n"
-    )
+    report += "- **ReAct Compliance**: Check for 'Thought:' and 'Action:' in response\n"
     threshold = f"{RELIABILITY_THRESHOLD:.0%}"
     report += (
         f"- **Reliability Test**: {len(TEST_QUERIES)} queries, "
@@ -377,12 +508,41 @@ Generated by: `scripts/test_poe_models.py`
 
 def main():
     """Run comprehensive model tests and generate report."""
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description="Test POE API models and generate comparison report"
+    )
+    parser.add_argument(
+        "--force-retest",
+        action="store_true",
+        help="Force retest all models (ignore cache)",
+    )
+    parser.add_argument(
+        "--use-cache",
+        action="store_true",
+        default=True,
+        help="Use cached results (default: True)",
+    )
+    args = parser.parse_args()
+
     print("=" * 70)
     print("POE API Model Comparison Test")
     print("=" * 70)
     print()
+
+    # Load cache if available
+    cache = load_cache(force_retest=args.force_retest)
+
     print(f"Testing {len(MODELS_TO_TEST)} models with {len(TEST_QUERIES)} queries each")
-    print("⚠️  This will make real API calls (costs money!)")
+    if cache:
+        cached_models = [m for m in MODELS_TO_TEST if m[0] in cache.models]
+        new_models = [m for m in MODELS_TO_TEST if m[0] not in cache.models]
+        if cached_models:
+            print(f"📦 Using cached results for {len(cached_models)} models")
+        if new_models:
+            print(f"🆕 Testing {len(new_models)} new models (costs money!)")
+    else:
+        print("⚠️  This will make real API calls (costs money!)")
     print()
 
     # Create client
@@ -395,20 +555,32 @@ def main():
         print(f"❌ Error: {e}")
         return
 
-    # Test each model
+    # Test each model (use cache if available)
     all_results = {}
 
     for model, description in MODELS_TO_TEST:
-        print(f"\n📊 Testing: {model}")
-        print(f"   ({description})")
+        # Check if model in cache
+        if cache and model in cache.models:
+            print(f"\n📦 Using cached: {model}")
+            print(f"   ({description})")
+            cached_result = cache.models[model]
+            # Convert pydantic models back to dict for compatibility
+            all_results[model] = {
+                "availability": cached_result.availability.model_dump(),
+                "react": cached_result.react.model_dump(),
+                "reliability": cached_result.reliability.model_dump(),
+            }
+        else:
+            print(f"\n📊 Testing: {model}")
+            print(f"   ({description})")
 
-        results = {
-            "availability": test_model_availability(client, model),
-            "react": test_react_compliance(client, model),
-            "reliability": test_reliability(client, model),
-        }
+            results = {
+                "availability": test_model_availability(client, model),
+                "react": test_react_compliance(client, model),
+                "reliability": test_reliability(client, model),
+            }
 
-        all_results[model] = results
+            all_results[model] = results
 
     # Generate report
     print("\n" + "=" * 70)
@@ -431,6 +603,20 @@ def main():
     print("\nTo view report:")
     print(f"  cat {output_file}")
     print()
+
+    # Save cache with validated results
+    cache_models = {}
+    for model, results in all_results.items():
+        # Convert dict results to pydantic models for validation
+        cache_models[model] = ModelTestResult(
+            availability=AvailabilityResult(**results["availability"]),
+            react=ReactResult(**results["react"]),
+            reliability=ReliabilityResult(**results["reliability"]),
+            grade=calculate_grade(results),
+        )
+
+    new_cache = TestCache(models=cache_models)
+    save_cache(new_cache)
 
 
 if __name__ == "__main__":

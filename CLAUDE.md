@@ -31,11 +31,12 @@ User → Orchestrator Agent → [Researcher | Writer | Fact-Checker] Agents
 
 - Python: 3.12+
 - Package Manager: uv (NOT pip)
-- LLM: OpenAI API via openai SDK (gpt-5.1 recommended)
+- LLM: OpenAI API via openai SDK (gpt-4.1-mini for balance of speed/cost/quality)
 - MCP Framework: FastMCP
 - A2A Framework: a2a-python
 - Vector Store: ChromaDB
 - Embeddings: HuggingFace SentenceTransformers
+- Schema Validation: Pydantic (for cache validation, type safety)
 
 ## Troubleshooting
 
@@ -114,7 +115,8 @@ research-assistant/
 ├── notes/
 ├── data/
 │   ├── chroma/
-│   └── memory.db
+│   ├── memory.db
+│   └── model-test-cache.json  # Pydantic-validated model test cache
 └── tests/
 
 ## Development Commands
@@ -150,21 +152,33 @@ The `scripts/` directory contains utility scripts for testing and validation.
 
 **Test POE API models for ReAct agent compatibility**:
 ```bash
+# Uses cache by default (FREE, no API calls)
 uv run python scripts/test_poe_models.py
+
+# Force retest (makes API calls, costs money!)
+uv run python scripts/test_poe_models.py --force-retest
 ```
 
 This script:
 - Tests multiple models (gpt-4.1, gpt-4.1-mini, gpt-5.1, etc.)
-- Validates ReAct format compliance
+- Validates ReAct format compliance with pydantic schemas
 - Measures reliability and performance
 - Generates comparison report in `docs/model-comparison-{date}.md`
+- **Caches results** in `data/model-test-cache.json` (pydantic-validated)
+- Warns if cache >30 days old
+
+**Cache Behavior**:
+- First run: Tests all models, saves cache (costs money)
+- Subsequent runs: Uses cache, no API calls (FREE!)
+- Cache validation: Pydantic ensures data integrity
+- Force retest: Use `--force-retest` to bypass cache
 
 **Configure models to test**:
 Edit `scripts/test_poe_models.py` and modify the `MODELS_TO_TEST` list.
 
 **When to run**:
 - Before changing `MODEL_NAME` in `src/config.py`
-- When POE API adds new models
+- When POE API adds new models (use `--force-retest`)
 - If experiencing model instability
 - To validate model selection for production
 

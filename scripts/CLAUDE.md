@@ -31,9 +31,19 @@ The `scripts/` directory contains utility scripts for testing, validation, and t
 
 **Usage**:
 ```bash
-# Run from project root
+# Run from project root (uses cache by default)
 uv run python scripts/test_poe_models.py
+
+# Force retest all models (ignore cache, makes API calls)
+uv run python scripts/test_poe_models.py --force-retest
 ```
+
+**Caching**:
+- **Cache Location**: `data/model-test-cache.json` (auto-generated, gitignored)
+- **Cache Validation**: Uses pydantic schemas for data integrity
+- **Default Behavior**: Uses cache if available (no API calls)
+- **Cache Age Warning**: Warns if cache >30 days old
+- **Force Retest**: Use `--force-retest` to bypass cache
 
 **What It Does**:
 1. Tests multiple POE API models for availability
@@ -45,6 +55,7 @@ uv run python scripts/test_poe_models.py
 **Output Location**:
 - Report: `docs/model-comparison-YYYY-MM-DD.md`
 - Logs: `test-api-calls.log`, `api-call-audit.log`
+- Cache: `data/model-test-cache.json` (pydantic-validated)
 
 **Configuration**:
 Edit the script to modify:
@@ -172,6 +183,19 @@ When adding a new script to this directory:
 ---
 
 ## Important Context for AI Agents
+
+### Cache Management
+
+When working with `test_poe_models.py`:
+
+1. **Default behavior**: Script uses cache to avoid expensive API calls
+2. **Cache validation**: Uses pydantic schemas (see AvailabilityResult, ReactResult, etc.)
+3. **When to force retest**:
+   - POE API announces model updates
+   - Cache validation fails
+   - User explicitly requests fresh results
+4. **Cache location**: `data/model-test-cache.json` (gitignored)
+5. **Manual cache invalidation**: Delete cache file or use `--force-retest` flag
 
 ### When Working in scripts/
 

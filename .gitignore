@@ -69,6 +69,7 @@ dmypy.json
 # Project-specific data (generated, can be rebuilt)
 data/chroma/
 data/memory.db
+data/model-test-cache.json
 
 # OS files
 .DS_Store
