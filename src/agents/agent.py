@@ -68,3 +68,24 @@ Always start with a Thought, then take an Action, wait for the Observation, and 
                     return (tool_name.strip(), tool_input.strip())
 
         return None
+
+    def _execute_tool(self, tool_name: str, tool_input: str) -> str:
+        """Execute a tool by name with the given input.
+
+        Args:
+            tool_name: Name of the tool to execute
+            tool_input: Input string to pass to the tool
+
+        Returns:
+            Result string from the tool execution
+
+        Raises:
+            ValueError: If tool_name is not found
+        """
+        # Find the tool by name
+        for tool in self.tools:
+            if tool.name == tool_name:
+                return tool.function(tool_input)
+
+        # Tool not found
+        raise ValueError(f"Unknown tool: {tool_name}")
