@@ -1,6 +1,26 @@
 # Contributing to Research Assistant
 
+> **For AI assistant context**, see [CLAUDE.md](CLAUDE.md)
+> **For project overview**, see [README.md](README.md)
+
 Thank you for your interest in contributing! This document provides guidelines for contributing to this learning project.
+
+## Table of Contents
+
+- [Learning Project Philosophy](#learning-project-philosophy)
+- [Development Workflow](#development-workflow)
+- [Commit Message Format](#commit-message-format)
+- [Setting Up Your Development Environment](#setting-up-your-development-environment)
+- [Code Quality Standards](#code-quality-standards)
+  - [Pre-commit Hooks](#pre-commit-hooks)
+  - [Testing Standards](#testing-standards)
+  - [Type Checking](#type-checking)
+  - [Code Style](#code-style)
+- [Integration Test Safety](#integration-test-safety)
+- [Testing Patterns for LLM Code](#testing-patterns-for-llm-code)
+- [Documentation Standards](#documentation-standards)
+- [Project Structure](#project-structure)
+- [Common Tasks](#common-tasks)
 
 ## Learning Project Philosophy
 
@@ -19,18 +39,35 @@ This project follows a structured workflow: **Explore → Plan → Test → Impl
 
 For each implementation phase:
 
-1. **EXPLORE**: Investigate relevant patterns, documentation, or existing code
-2. **PLAN**: Create a checklist in `docs/checklists/phase-N.md` before writing code
+1. **EXPLORE**: Use subagents to investigate relevant patterns, docs, or existing code
+2. **PLAN**: Create a checklist in `docs/checklists/phase-N.md` before any code
 3. **IMPLEMENT**: For each checklist item, follow TDD:
-   - Write test first, commit with `test:` prefix
-   - Write minimal implementation, commit with `feat:` prefix
-   - Refactor if needed, commit with `refactor:` prefix
-4. **DOCUMENT**: After completing a logical group:
+   - Write test first, commit with prefix `test:`
+   - Write minimal implementation, commit with prefix `feat:`
+   - Refactor if needed, commit with prefix `refactor:`
+4. **DOCUMENT**: After each logical group of commits:
    - Append summary to `docs/learning-logs/phase-N-log.md`
    - Update `CLAUDE.md` with patterns learned
-   - Commit with `docs:` prefix
+   - Commit with prefix `docs:`
 
-### Commit Message Format
+### Context Management
+
+- Use `/clear` between major checklist items to keep context focused
+- Use subagents for investigation tasks before implementation
+- Keep the current phase checklist open as a working scratchpad
+- Reference `docs/reference/` for tips and sample prompts
+
+### Learning Logs
+
+After completing a logical group of checklist items:
+
+1. Append a summary to the current phase log (`docs/learning-logs/phase-N-log.md`)
+2. Include: what was built, key decisions, code snippets, sample output
+3. Periodically update `MASTER_LOG.md` to aggregate all phase logs into a coherent narrative
+
+The `MASTER_LOG.md` should read like a tutorial: "Read this to understand how this repo works."
+
+## Commit Message Format
 
 All commits **must** use one of these prefixes:
 
@@ -81,7 +118,7 @@ uv run pytest
 
 ## Code Quality Standards
 
-### Pre-commit Hooks (Automated)
+### Pre-commit Hooks
 
 Pre-commit hooks run automatically on every commit and enforce:
 
@@ -112,7 +149,12 @@ This prevents pre-commit from reformatting and requiring a second commit.
 uv run pre-commit run --all-files
 ```
 
-### Testing Requirements
+**Skip hooks** (NOT recommended):
+```bash
+git commit --no-verify
+```
+
+### Testing Standards
 
 **TDD Workflow** (Test-Driven Development):
 1. Write test first (should fail)
@@ -131,14 +173,6 @@ uv run pytest --cov=src
 # Run specific test file
 uv run pytest tests/agents/test_agent.py
 ```
-
-**Integration test safety**:
-- Integration tests (that make real API calls) require `ALLOW_INTEGRATION_TESTS=1`
-- Pre-commit hooks skip integration tests by default to prevent API costs
-- Only run integration tests when explicitly intended:
-  ```bash
-  ALLOW_INTEGRATION_TESTS=1 pytest -m integration
-  ```
 
 **Testing standards**:
 - Test files mirror source structure in `tests/` directory
@@ -190,6 +224,95 @@ Ruff automatically fixes:
 - Unused imports
 - Common PEP 8 violations
 
+## Integration Test Safety
+
+Multi-layer protection against accidental API calls during testing:
+
+**Layer 1: Environment Variable Gate** (PRIMARY):
+- Integration tests require `ALLOW_INTEGRATION_TESTS=1`
+- Auto-skip via `tests/conftest.py` fixture
+- Logged when skipped
+
+**Layer 2: Pre-commit Configuration** (SECONDARY):
+- Runs: `pytest -m "not integration"`
+- Skips all `@pytest.mark.integration` tests
+
+**Layer 3: pytest.ini Default** (TERTIARY):
+- Default: `-m "not integration"` in `pyproject.toml`
+- Safe even if pytest run manually without flags
+
+**Safe (no API calls)**:
+```bash
+pytest                    # Default: skips integration
+git commit -m "..."       # Pre-commit skips integration
+```
+
+**Unsafe (makes API calls)**:
+```bash
+# Requires explicit opt-in
+ALLOW_INTEGRATION_TESTS=1 pytest -m integration
+```
+
+**If safety net triggers**:
+```
+⚠️  SKIPPED integration test: test_model_integration (ALLOW_INTEGRATION_TESTS not set)
+```
+This is CORRECT behavior - safety net is working!
+
+## Testing Patterns for LLM Code
+
+### Mocking OpenAI/LLM Clients
+
+```python
+from unittest.mock import MagicMock
+
+def test_agent_calls_llm():
+    """Test agent behavior with mocked LLM client."""
+    # Create mock client
+    mock_client = MagicMock()
+
+    # Create nested mock for OpenAI response structure
+    mock_response = MagicMock()
+    mock_response.choices = [
+        MagicMock(message=MagicMock(content="LLM response text"))
+    ]
+    mock_client.chat.completions.create.return_value = mock_response
+
+    # Test code that uses client
+    agent = Agent(client=mock_client)
+    result = agent.run("query")
+
+    # Verify behavior
+    assert mock_client.chat.completions.create.called
+```
+
+### Multi-Turn Conversation Testing
+
+```python
+def test_multi_turn_conversation():
+    """Use side_effect for multiple LLM calls."""
+    mock_client = MagicMock()
+
+    # Define sequence of responses
+    response_1 = MagicMock()
+    response_1.choices = [MagicMock(message=MagicMock(content="First response"))]
+
+    response_2 = MagicMock()
+    response_2.choices = [MagicMock(message=MagicMock(content="Second response"))]
+
+    # Use side_effect for sequential returns
+    mock_client.chat.completions.create.side_effect = [response_1, response_2]
+
+    # Verify call count
+    assert mock_client.chat.completions.create.call_count == 2
+```
+
+### Verification Strategies
+
+- Use count assertions (`call_count`, `result.count("text")`) to verify behavior without over-specifying implementation
+- Avoid asserting exact strings - check for key phrases or patterns
+- Test both success and error paths
+
 ## Documentation Standards
 
 ### Code Documentation
@@ -223,29 +346,6 @@ After completing checklist items, document in `docs/learning-logs/phase-N-log.md
 - **Sample output**: Demonstrate the feature working
 
 This helps others learn from your implementation journey.
-
-## Running the Project
-
-**Interactive REPL** (Phase 1):
-```bash
-uv run python src/main.py
-```
-
-**Run tests**:
-```bash
-uv run pytest
-```
-
-**Format and lint**:
-```bash
-uv run ruff check . --fix
-uv run ruff format .
-```
-
-**Type check**:
-```bash
-uv run pyright
-```
 
 ## Project Structure
 
