@@ -3,33 +3,53 @@
 ## Overview
 Build a single agent with ReAct-style reasoning loop (Think → Act → Observe → Repeat).
 
-## Setup
-- [ ] Create src/agents/__init__.py with base agent class structure
-- [ ] Create tests/agents/__init__.py
-- [ ] Verify pytest runs successfully with no tests
+## GROUP 1: Setup ✅
+- [x] Verify pytest runs successfully with no tests
+- [x] Create tests/agents/test_tools.py with placeholder test
 
-## Core Agent Loop
-- [ ] Test: Agent initializes with OpenAI client
-- [ ] Test: Agent receives a message and returns a response
-- [ ] Test: Agent can call a tool and observe the result
-- [ ] Test: Agent loops until it decides to stop (max iterations safety)
-- [ ] Test: Agent maintains conversation history within a session
+## GROUP 2: Tool System ✅
+- [x] Test: Tool has name, description, function attributes
+- [x] Implement: Basic Tool dataclass
+- [x] Test: search_web tool returns mock search results
+- [x] Implement: search_web placeholder tool
+- [x] Test: save_note tool returns confirmation message
+- [x] Implement: save_note placeholder tool
+- [x] Test: get_all_tools returns complete tool list
+- [x] Implement: get_all_tools function
 
-## Basic Tools
-- [ ] Test: search_web tool interface returns expected structure
-- [ ] Test: save_note tool writes content to specified path
-- [ ] Test: Agent selects appropriate tool based on user query
+## GROUP 3: Agent Core Structure
+- [ ] Test: Agent initializes with client, max_iterations, tools list
+- [ ] Implement: Agent.__init__ with attributes
+- [ ] Test: Agent builds system prompt with ReAct instructions and tool descriptions
+- [ ] Implement: _build_system_prompt() method
 
-## ReAct Implementation
-- [ ] Test: Agent produces "Thought" before taking action
-- [ ] Test: Agent produces "Observation" after tool execution
-- [ ] Test: Agent produces final "Answer" when task complete
+## GROUP 4: ReAct Loop Components
+- [ ] Test: Parse action from LLM response (extracts tool_name and input)
+- [ ] Test: Parser returns None if no Action found
+- [ ] Implement: _parse_action() method
+- [ ] Test: Execute tool by name
+- [ ] Test: Handle unknown tool errors
+- [ ] Implement: _execute_tool() method
+- [ ] Test: Format observation with label
+- [ ] Implement: _format_observation() method
 
-## Integration
-- [ ] Test: End-to-end flow - user asks question, agent thinks, acts, responds
+## GROUP 5: Main Run Loop
+- [ ] Test: Agent runs single iteration with mocked LLM response
+- [ ] Implement: run() method with loop logic
+- [ ] Test: Agent respects max_iterations limit
+- [ ] Verify/Refactor: Ensure loop respects limit
+- [ ] Test: Agent stops when final answer provided
+- [ ] Verify: Current implementation handles Answer detection
+
+## GROUP 6: Integration
+- [ ] Test: End-to-end workflow with mocked responses (Thought→Action→Observation→Answer)
+- [ ] Implement: src/main.py with interactive REPL
 - [ ] Manual verification: Run agent interactively in terminal
 
-## Documentation
-- [ ] Update CLAUDE.md with testing patterns established
-- [ ] Update phase-1-log.md with implementation summary
+## GROUP 7: Documentation
 - [ ] Add docstrings to all public functions
+- [ ] Complete docs/learning-logs/phase-1-log.md
+- [ ] Update CLAUDE.md with Phase 1 patterns
+- [ ] Update MASTER_LOG.md with Phase 1 summary
+- [ ] Run linting: `uv run ruff check . && uv run ruff format .`
+- [ ] Final coverage: `uv run pytest --cov=src`
