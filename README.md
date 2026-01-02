@@ -109,96 +109,44 @@ User → Agent (ReAct Loop) → Tools → [Web Search | Filesystem | Vector Stor
 
 ## Development Workflow
 
-**Install dependencies**:
+**Quick commands**:
 ```bash
-uv sync
+uv sync                  # Install dependencies
+uv run python src/main.py # Run the agent
+uv run pytest            # Run tests (integration skipped)
 ```
 
-**Run the agent**:
-```bash
-uv run python src/main.py
-```
-
-**Run tests** (all integration tests skipped by default to prevent API costs):
-```bash
-uv run pytest
-```
-
-**Run tests with coverage**:
-```bash
-uv run pytest --cov=src
-```
-
-**Format and lint** (recommended before committing):
-```bash
-uv run ruff check . --fix
-uv run ruff format .
-```
-
-**Type check**:
-```bash
-uv run pyright
-```
-
-Pre-commit hooks run automatically on `git commit` to enforce:
-- Code formatting (Ruff)
-- Type checking (Pyright)
-- Tests passing (pytest, integration tests skipped)
-- Commit message format (`feat:`, `test:`, `docs:`, `fix:`, `refactor:`, `chore:`)
+**For complete workflow**, see [CONTRIBUTING.md](CONTRIBUTING.md):
+- [Pre-commit hooks](CONTRIBUTING.md#pre-commit-hooks) - Auto-formatting, type checking, tests
+- [Testing standards](CONTRIBUTING.md#testing-standards) - TDD workflow, coverage requirements
+- [Code quality](CONTRIBUTING.md#code-quality-standards) - Ruff, Pyright, commit message format
 
 ## Project Structure
 
 ```
 research-assistant/
-├── src/
-│   ├── config.py              # Centralized configuration
-│   ├── main.py                # Interactive REPL entry point
-│   ├── agents/
-│   │   ├── agent.py           # ✅ Phase 1: ReAct agent implementation
-│   │   ├── tools.py           # ✅ Phase 1: Tool system with mocks
-│   │   ├── orchestrator.py    # 📋 Phase 4: Multi-agent coordinator
-│   │   ├── researcher.py      # 📋 Phase 4: Web research specialist
-│   │   ├── writer.py          # 📋 Phase 4: Note synthesis agent
-│   │   └── fact_checker.py    # 📋 Phase 4: RAG-based validation
-│   ├── mcp_servers/           # 📋 Phase 2: MCP tool servers
-│   │   ├── filesystem_server.py
-│   │   ├── vectorstore_server.py
-│   │   └── memory_server.py
-│   └── rag/                   # 📋 Phase 3: RAG components
-│       ├── embeddings.py
-│       ├── chunking.py
-│       └── retriever.py
-├── tests/                     # ✅ Comprehensive test suite (422 lines)
-├── docs/
-│   ├── learning-logs/         # Implementation narratives
-│   ├── checklists/            # Phase progress tracking
-│   └── reference/             # Guides and troubleshooting
-├── scripts/
-│   └── test_poe_models.py     # Model testing and validation
-├── data/
-│   ├── chroma/                # Vector store (Phase 3)
-│   └── memory.db              # SQLite memory (Phase 2)
-└── notes/                     # User-saved markdown notes
+├── src/                       # ✅ Phase 1 complete (agent.py, tools.py)
+│   ├── agents/                # 📋 Phase 4 planned (orchestrator, specialized agents)
+│   ├── mcp_servers/           # 📋 Phase 2 planned
+│   └── rag/                   # 📋 Phase 3 planned
+├── tests/                     # ✅ 422 lines, 66%+ coverage
+├── docs/                      # Learning logs, checklists, reference guides
+├── scripts/                   # Model testing and validation
+├── data/                      # Vector store, memory (gitignored)
+└── notes/                     # User notes (gitignored)
 ```
 
-Legend: ✅ Complete | 📋 Planned
+**Legend**: ✅ Complete | 📋 Planned
+
+For detailed structure, see [CLAUDE.md#project-structure](CLAUDE.md#project-structure)
 
 ## For AI Engineers
 
-See [`CLAUDE.md`](CLAUDE.md) for complete project context optimized for AI assistants like Claude Code. It contains:
-- Implementation patterns and conventions
-- Testing strategies for LLM applications
-- POE API troubleshooting and model selection
-- Code quality standards and pre-commit hooks
-- Phase-by-phase implementation guide
+See [`CLAUDE.md`](CLAUDE.md) for complete project context optimized for AI assistants - implementation patterns, testing strategies, POE API troubleshooting, and navigation guide.
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for:
-- Development workflow and TDD practices
-- Commit message conventions
-- Code quality standards
-- How to run tests safely without API costs
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for development workflow, TDD practices, commit conventions, and code quality standards.
 
 ## License
 
