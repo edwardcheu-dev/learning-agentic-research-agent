@@ -196,19 +196,61 @@ Do not hardcode API keys in any source files.
 To verify they're set:
     echo $POE_API_KEY
 
-## Code Style
+## Code Quality & Testing
 
-Use ruff for linting and formatting. Run before committing:
-    uv run ruff check .
-    uv run ruff format .
+This project enforces code quality through automated tools and TDD practices.
 
-## Testing
+### Pre-commit Hooks (Automated)
 
-This project follows TDD. Write tests before implementation.
-    uv run pytest
-    uv run pytest --cov=src
+Pre-commit hooks run automatically on every commit to ensure code quality:
 
-Test files mirror source structure in tests/ directory.
+**Setup** (one-time):
+    uv run pre-commit install
+    uv run pre-commit install --hook-type commit-msg
+
+**Hooks Enforced:**
+1. **Ruff** - Auto-fixes linting and formatting issues
+2. **Pyright** - Type checking (configured for "basic" mode)
+3. **Pytest** - Runs all tests before allowing commit
+4. **File Hygiene** - Trims whitespace, ensures newlines, validates YAML/TOML
+5. **Commit Message Validation** - Requires prefix: `test:`, `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
+
+**Manual Commands:**
+    uv run pre-commit run --all-files    # Run all hooks without committing
+    git commit --no-verify                # Skip hooks (NOT recommended)
+
+### Testing (TDD Workflow)
+
+Write tests BEFORE implementation:
+    uv run pytest                # Run all tests
+    uv run pytest --cov=src      # Run with coverage report
+
+- Test files mirror source structure in `tests/` directory
+- Follow the pattern: test first (red) → implement (green) → refactor
+- Aim for >70% code coverage
+
+### Type Checking
+
+All code includes type hints:
+    uv run pyright               # Run type checker manually
+
+- Function parameters and return types must be annotated
+- Class attributes should have type hints
+- Use `Any` sparingly (only for external library types)
+- Configuration: `[tool.pyright]` in `pyproject.toml`
+
+### Code Style
+
+Ruff handles formatting automatically via pre-commit hooks.
+Manual formatting (if needed):
+    uv run ruff check .          # Check for issues
+    uv run ruff format .         # Auto-format code
+
+- Line length: 88 characters
+- Import ordering: stdlib → third-party → local
+- Style guide: PEP 8 compliant
+
+### Development Patterns
 
 Patterns established during development will be documented here.
 
