@@ -5,34 +5,28 @@ This is the main entry point for running the agent interactively.
 Users can ask questions and see the ReAct reasoning process in action.
 """
 
-import os
 import openai
+
 from src.agents.agent import Agent
+from src.config import API_BASE_URL, DEFAULT_MAX_ITERATIONS, get_api_key
 
 
-def create_client():
+def create_client() -> openai.OpenAI:
     """Create OpenAI client configured for POE API.
 
     Returns:
-        openai.OpenAI: Configured client instance
+        Configured OpenAI client instance
 
     Raises:
         ValueError: If POE_API_KEY environment variable is not set
     """
-    api_key = os.getenv("POE_API_KEY")
-    if not api_key:
-        raise ValueError(
-            "POE_API_KEY environment variable not set. "
-            "Please set it in your shell configuration."
-        )
-
     return openai.OpenAI(
-        api_key=api_key,
-        base_url="https://api.poe.com/v1",
+        api_key=get_api_key(),
+        base_url=API_BASE_URL,
     )
 
 
-def main():
+def main() -> None:
     """Run the interactive REPL for the Research Assistant."""
     print("=" * 60)
     print("Research Assistant - Phase 1: Basic Agentic Loop")
@@ -47,7 +41,7 @@ def main():
     # Create client and agent
     try:
         client = create_client()
-        agent = Agent(client=client, max_iterations=3)
+        agent = Agent(client=client, max_iterations=DEFAULT_MAX_ITERATIONS)
     except ValueError as e:
         print(f"Error: {e}")
         return
