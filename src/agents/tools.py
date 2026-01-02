@@ -32,8 +32,29 @@ def get_search_web_tool() -> Tool:
 
 
 def _save_note_impl(content: str) -> str:
-    """Placeholder implementation of save note."""
+    """Mock implementation of save_note tool (Phase 1 placeholder).
+
+    Extracts the title from the first line of content (expected format: "title: <name>")
+    and returns a mock success message. Does not actually save files yet.
+
+    Args:
+        content: Note content where first line should be "title: <note name>"
+
+    Returns:
+        Mock success message indicating the note was "saved"
+
+    Example:
+        >>> _save_note_impl(r"title: Python Basics\nPython is a programming language")
+        "MOCK SAVE: Note 'Python Basics' saved successfully"
+        >>> _save_note_impl("Python is a programming language")
+        "MOCK SAVE: Note 'Python is a programming language' saved successfully"
+        >>> _save_note_impl("")
+        "MOCK SAVE: Note '' saved successfully"
+    """
+    # Split into first line (title) and rest (max 2 parts)
     lines = content.split("\n", 1)
+    # Note: split() always returns at least [''], so 'else "untitled"' is unreachable
+    # Kept as defensive programming for potential future changes
     title = lines[0].replace("title:", "").strip() if lines else "untitled"
     return f"MOCK SAVE: Note '{title}' saved successfully"
 
