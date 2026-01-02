@@ -1,5 +1,7 @@
 # Scripts Directory
 
+> **For AI assistant context**, see [CLAUDE.md](CLAUDE.md)
+
 Utility scripts for testing, validation, and tooling.
 
 ## Available Scripts
@@ -53,7 +55,7 @@ The script uses pydantic schemas to validate cache structure:
 
 ### Before Changing Models
 
-**Scenario**: You want to change `MODEL_NAME` from `gpt-5.1` to `gpt-4.1`
+**Scenario**: You want to change `MODEL_NAME` from `gpt-4.1-mini` to another model
 
 **TDD Workflow**:
 
@@ -83,14 +85,14 @@ The script uses pydantic schemas to validate cache structure:
 4. **If tests pass, update config**:
    ```python
    # src/config.py
-   MODEL_NAME: str = "gpt-4.1"
+   MODEL_NAME: str = "gpt-4.1-mini"  # Update to your chosen model
    ```
 
 5. **Update test assertions**:
    ```python
    # tests/test_config.py
    def test_config_has_model_name():
-       assert MODEL_NAME == "gpt-4.1"
+       assert MODEL_NAME == "gpt-4.1-mini"  # Update to match config
    ```
 
 6. **Run integration tests**:
@@ -106,7 +108,7 @@ The script uses pydantic schemas to validate cache structure:
 8. **Commit changes**:
    ```bash
    git add src/config.py tests/test_config.py docs/model-comparison-*.md
-   git commit -m "feat: change model to gpt-4.1 after validation"
+   git commit -m "feat: change model to {new-model} after validation"
    ```
 
 ---
@@ -293,5 +295,3 @@ To add a new script:
 6. Document expected input/output
 
 ---
-
-**Last Updated**: January 2, 2026

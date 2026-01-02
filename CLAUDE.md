@@ -319,6 +319,6 @@ print(chat.choices[0].message.content)
 - MCP servers run as separate processes
 - Vector store persists to data/chroma/
 - All notes are markdown files in notes/
-- **Model selection**: Use `scripts/test_poe_models.py` to validate before changing models
+- **Model selection**: See [scripts/README.md](scripts/README.md) for model testing workflow before changing `MODEL_NAME`
 - **Model testing reports**: Generated in `docs/model-comparison-*.md` for historical reference
 - **Integration tests**: Require `ALLOW_INTEGRATION_TESTS=1` to prevent accidental API costs (see [CONTRIBUTING.md#integration-test-safety](CONTRIBUTING.md#integration-test-safety))

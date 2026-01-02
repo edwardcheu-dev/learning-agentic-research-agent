@@ -1,8 +1,9 @@
 # Scripts Directory - AI Agent Context
 
-**This file provides context for AI agents (like Claude Code) working in the scripts/ directory.**
+> **For complete script usage**, see [README.md](README.md)
+> **For project context**, see [../CLAUDE.md](../CLAUDE.md)
 
-For human-readable documentation, see [README.md](README.md).
+**This file provides AI-essential context only. See README.md for comprehensive documentation.**
 
 ---
 
@@ -38,30 +39,14 @@ uv run python scripts/test_poe_models.py
 uv run python scripts/test_poe_models.py --force-retest
 ```
 
-**Caching**:
-- **Cache Location**: `data/model-test-cache.json` (auto-generated, gitignored)
-- **Cache Validation**: Uses pydantic schemas for data integrity
-- **Default Behavior**: Uses cache if available (no API calls)
-- **Cache Age Warning**: Warns if cache >30 days old
-- **Force Retest**: Use `--force-retest` to bypass cache
+**Key Points for AI**:
+- Uses **pydantic-validated cache** at `data/model-test-cache.json`
+- Default: uses cache (no API calls, FREE)
+- `--force-retest`: bypasses cache (makes API calls, costs money)
+- Generates report in `docs/model-comparison-{date}.md`
+- Tests: availability, ReAct compliance, reliability, performance
 
-**What It Does**:
-1. Tests multiple POE API models for availability
-2. Validates ReAct format compliance (Thought/Action/Observation)
-3. Measures reliability (success rate across multiple queries)
-4. Calculates performance metrics (response time, token usage)
-5. Generates comparison report in `docs/model-comparison-{date}.md`
-
-**Output Location**:
-- Report: `docs/model-comparison-YYYY-MM-DD.md`
-- Logs: `test-api-calls.log`, `api-call-audit.log`
-- Cache: `data/model-test-cache.json` (pydantic-validated)
-
-**Configuration**:
-Edit the script to modify:
-- `MODELS_TO_TEST`: List of POE API model names to compare
-- `TEST_QUERIES`: Queries used for validation
-- `THRESHOLDS`: Pass/fail criteria (e.g., min 80% ReAct compliance)
+**For complete workflow**, see [README.md#when-to-use-scripts](README.md#when-to-use-scripts)
 
 **Important Notes**:
 - ⚠️ Makes REAL API calls (costs money!)
@@ -92,52 +77,6 @@ Edit the script to modify:
 - ✅ Run **manually** before major changes
 - ✅ Run when **validating new models**
 - ✅ Run when **generating reports**
-
----
-
-## TDD Workflow for Model Changes
-
-When changing `MODEL_NAME` in `src/config.py`, follow this workflow:
-
-### Step 1: Run Comprehensive Test
-```bash
-uv run python scripts/test_poe_models.py
-```
-
-### Step 2: Review Generated Report
-- Location: `docs/model-comparison-{date}.md`
-- Check: Availability, ReAct compliance, reliability scores
-- Verify: New model meets minimum thresholds
-
-### Step 3: If Model Passes, Update Config
-```python
-# src/config.py
-MODEL_NAME: str = "new-model-name"
-```
-
-```python
-# tests/test_config.py
-def test_config_has_model_name():
-    assert MODEL_NAME == "new-model-name"
-```
-
-### Step 4: Run Integration Tests
-```bash
-# Validate with real API
-ALLOW_INTEGRATION_TESTS=1 uv run pytest -m integration -v
-```
-
-### Step 5: Run Full Test Suite
-```bash
-# All tests (unit + integration)
-uv run pytest -v
-```
-
-### Step 6: Commit Changes
-```bash
-git add src/config.py tests/test_config.py docs/model-comparison-*.md
-git commit -m "feat: change model to {new-model} after validation"
-```
 
 ---
 
@@ -183,19 +122,6 @@ When adding a new script to this directory:
 ---
 
 ## Important Context for AI Agents
-
-### Cache Management
-
-When working with `test_poe_models.py`:
-
-1. **Default behavior**: Script uses cache to avoid expensive API calls
-2. **Cache validation**: Uses pydantic schemas (see AvailabilityResult, ReactResult, etc.)
-3. **When to force retest**:
-   - POE API announces model updates
-   - Cache validation fails
-   - User explicitly requests fresh results
-4. **Cache location**: `data/model-test-cache.json` (gitignored)
-5. **Manual cache invalidation**: Delete cache file or use `--force-retest` flag
 
 ### When Working in scripts/
 
@@ -248,6 +174,3 @@ rm -f test-api-calls.log api-call-audit.log
 - **[../docs/reference/poe-api-troubleshooting.md](../docs/reference/poe-api-troubleshooting.md)** - POE API model selection guide
 
 ---
-
-**Last Updated**: January 2, 2026
-**Scripts Count**: 1 (test_poe_models.py)
