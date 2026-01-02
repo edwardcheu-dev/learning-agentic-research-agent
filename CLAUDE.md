@@ -153,6 +153,7 @@ For each implementation phase:
 
 - `test:` - Adding or updating tests (before implementation)
 - `feat:` - New feature implementation (making tests pass)
+- `fix:` - Bug fixes (correcting incorrect behavior)
 - `refactor:` - Code improvement without behavior change
 - `docs:` - Documentation updates
 - `chore:` - Build, config, or tooling changes
