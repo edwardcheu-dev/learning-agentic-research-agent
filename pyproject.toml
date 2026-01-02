@@ -41,3 +41,16 @@ select = ["E", "F", "I", "W"]
 [tool.coverage.run]
 source = ["src"]
 omit = ["tests/*"]
+
+[tool.pyright]
+include = ["src"]
+exclude = [
+    "**/__pycache__",
+    ".venv",
+    "data",
+    "notes",
+]
+typeCheckingMode = "basic"
+pythonVersion = "3.12"
+reportMissingImports = true
+reportMissingTypeStubs = false
