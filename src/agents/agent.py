@@ -100,3 +100,54 @@ Always start with a Thought, then take an Action, wait for the Observation, and 
             Formatted observation string with label
         """
         return f"Observation: {result}"
+
+    def run(self, query: str) -> str:
+        """Run the agent on a query using ReAct loop.
+
+        Args:
+            query: User's question or request
+
+        Returns:
+            String containing the conversation history with all reasoning steps
+        """
+        # Build system prompt
+        system_prompt = self._build_system_prompt()
+
+        # Initialize conversation
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": query},
+        ]
+
+        conversation = f"User: {query}\n\n"
+
+        # ReAct loop
+        for iteration in range(self.max_iterations):
+            # Call LLM
+            response = self.client.chat.completions.create(
+                model="gpt-4", messages=messages
+            )
+
+            llm_response = response.choices[0].message.content
+            conversation += f"{llm_response}\n\n"
+
+            # Parse action
+            action = self._parse_action(llm_response)
+
+            # If no action, agent has provided final answer
+            if action is None:
+                break
+
+            # Execute tool
+            tool_name, tool_input = action
+            tool_result = self._execute_tool(tool_name, tool_input)
+
+            # Format observation
+            observation = self._format_observation(tool_result)
+            conversation += f"{observation}\n\n"
+
+            # Add to conversation for next iteration
+            messages.append({"role": "assistant", "content": llm_response})
+            messages.append({"role": "user", "content": observation})
+
+        return conversation.strip()
