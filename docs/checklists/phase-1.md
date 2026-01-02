@@ -23,15 +23,15 @@ Build a single agent with ReAct-style reasoning loop (Think → Act → Observe 
 - [x] Test: Agent builds system prompt with ReAct instructions and tool descriptions
 - [x] Implement: _build_system_prompt() method
 
-## GROUP 4: ReAct Loop Components
-- [ ] Test: Parse action from LLM response (extracts tool_name and input)
-- [ ] Test: Parser returns None if no Action found
-- [ ] Implement: _parse_action() method
-- [ ] Test: Execute tool by name
-- [ ] Test: Handle unknown tool errors
-- [ ] Implement: _execute_tool() method
-- [ ] Test: Format observation with label
-- [ ] Implement: _format_observation() method
+## GROUP 4: ReAct Loop Components ✅
+- [x] Test: Parse action from LLM response (extracts tool_name and input)
+- [x] Test: Parser returns None if no Action found
+- [x] Implement: _parse_action() method
+- [x] Test: Execute tool by name
+- [x] Test: Handle unknown tool errors
+- [x] Implement: _execute_tool() method
+- [x] Test: Format observation with label
+- [x] Implement: _format_observation() method
 
 ## GROUP 5: Main Run Loop
 - [ ] Test: Agent runs single iteration with mocked LLM response

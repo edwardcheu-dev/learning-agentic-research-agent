@@ -267,6 +267,141 @@ dcb3302 feat: implement _build_system_prompt() with ReAct format
 
 ---
 
+### Session 3: 2026-01-02 - GROUP 4
+
+#### What We Built
+
+**GROUP 4: ReAct Loop Components**
+- Implemented `_parse_action()` to extract tool names and inputs from LLM responses
+- Implemented `_execute_tool()` to invoke tools by name with error handling
+- Implemented `_format_observation()` to label tool results
+
+#### Key Decisions
+
+1. **Action Format**: Expected format is `Action: tool_name: input`
+   - **Rationale**: Simple and clear format that's easy for LLM to follow
+   - **Parsing Strategy**: Split on first ":" after "Action:" to separate tool name from input
+   - **Example**: `"Action: search_web: python tutorials"` → `("search_web", "python tutorials")`
+
+2. **None Return for Missing Actions**: Parser returns `None` when no action is found
+   - **Rationale**: Allows the run loop to detect when LLM provides final answer
+   - **Use Case**: Response like `"Answer: Based on my search..."` returns `None` from parser
+
+3. **ValueError for Unknown Tools**: Raise exception instead of silent failure
+   - **Rationale**: Makes debugging easier and prevents silent errors
+   - **Error Message**: Includes the unknown tool name for debugging
+
+4. **Simple Observation Format**: Prefix result with `"Observation: "`
+   - **Rationale**: Matches ReAct format and helps LLM understand tool results
+   - **Example**: `"Observation: MOCK SEARCH RESULTS for 'python'..."`
+
+#### Code Highlights
+
+**Action Parser (src/agents/agent.py:46-70)**
+```python
+def _parse_action(self, response: str) -> tuple[str, str] | None:
+    """Parse action from LLM response."""
+    if "Action:" not in response:
+        return None
+
+    for line in response.split("\n"):
+        if line.strip().startswith("Action:"):
+            action_text = line.strip()[7:].strip()  # Remove "Action: "
+
+            if ":" in action_text:
+                tool_name, tool_input = action_text.split(":", 1)
+                return (tool_name.strip(), tool_input.strip())
+
+    return None
+```
+
+**Tool Executor (src/agents/agent.py:72-91)**
+```python
+def _execute_tool(self, tool_name: str, tool_input: str) -> str:
+    """Execute a tool by name with the given input."""
+    for tool in self.tools:
+        if tool.name == tool_name:
+            return tool.function(tool_input)
+
+    raise ValueError(f"Unknown tool: {tool_name}")
+```
+
+**Observation Formatter (src/agents/agent.py:93-102)**
+```python
+def _format_observation(self, result: str) -> str:
+    """Format tool result as an observation."""
+    return f"Observation: {result}"
+```
+
+#### Testing Pattern
+
+**Action Parsing Tests (tests/agents/test_agent.py:39-63)**
+```python
+def test_parse_action_extracts_tool_name_and_input():
+    """Parser should extract tool name and input from Action line."""
+    mock_client = Mock()
+    agent = Agent(client=mock_client, max_iterations=3)
+
+    response = "Thought: I need to search\nAction: search_web: python tutorials"
+    result = agent._parse_action(response)
+
+    assert result is not None
+    tool_name, tool_input = result
+    assert tool_name == "search_web"
+    assert tool_input == "python tutorials"
+
+
+def test_parse_action_returns_none_when_no_action():
+    """Parser should return None if no Action found."""
+    response = "Thought: I'm still thinking about this"
+    result = agent._parse_action(response)
+    assert result is None
+```
+
+**Tool Execution Tests (tests/agents/test_agent.py:66-89)**
+```python
+def test_execute_tool_by_name():
+    """Agent should execute tool by name with given input."""
+    result = agent._execute_tool("search_web", "python tutorials")
+    assert "MOCK SEARCH RESULTS" in result
+    assert "python tutorials" in result
+
+
+def test_execute_unknown_tool_raises_error():
+    """Agent should raise ValueError for unknown tool names."""
+    try:
+        agent._execute_tool("nonexistent_tool", "some input")
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert "Unknown tool" in str(e)
+        assert "nonexistent_tool" in str(e)
+```
+
+#### Lessons Learned
+
+1. **String Parsing Robustness**: Using `split(":", 1)` ensures only the first colon splits tool name from input, allowing colons in the input itself
+
+2. **Type Hints for Optionals**: Modern Python syntax `tuple[str, str] | None` is cleaner than `Optional[tuple[str, str]]`
+
+3. **Line-by-Line Parsing**: Iterating through lines with `split("\n")` handles multi-line responses correctly
+
+4. **Defensive Coding**: Always validate tool existence before execution prevents runtime errors
+
+5. **Test-First Discipline**: Writing both success and failure cases (unknown tool) ensures robust error handling
+
+#### Git History
+
+```
+53838ff test: parse action from LLM response and handle missing actions
+0a23bb1 feat: implement _parse_action() to extract tool name and input
+8406ef8 test: execute tool by name and handle unknown tool errors
+04879e6 feat: implement _execute_tool() with error handling for unknown tools
+78f881d test: format observation with label
+a73aea9 feat: implement _format_observation() to label tool results
+```
+
+---
+
 ## Phase Summary
 
 (Written at the end of Phase 1 - high-level summary for MASTER_LOG.md)
