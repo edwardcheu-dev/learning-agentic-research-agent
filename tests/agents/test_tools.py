@@ -1,6 +1,11 @@
 """Tests for placeholder tool implementations."""
 
-from src.agents.tools import Tool, get_save_note_tool, get_search_web_tool
+from src.agents.tools import (
+    Tool,
+    get_all_tools,
+    get_save_note_tool,
+    get_search_web_tool,
+)
 
 
 def test_placeholder():
@@ -37,3 +42,13 @@ def test_save_note_tool_returns_confirmation():
     assert "MOCK SAVE" in result
     assert "test" in result
     assert tool.name == "save_note"
+
+
+def test_get_all_tools_returns_list():
+    """get_all_tools returns list of available tools."""
+    tools = get_all_tools()
+
+    assert len(tools) == 2
+    tool_names = [t.name for t in tools]
+    assert "search_web" in tool_names
+    assert "save_note" in tool_names
