@@ -61,3 +61,29 @@ def test_parse_action_returns_none_when_no_action():
     result = agent._parse_action(response)
 
     assert result is None
+
+
+def test_execute_tool_by_name():
+    """Agent should execute tool by name with given input."""
+    mock_client = Mock()
+    agent = Agent(client=mock_client, max_iterations=3)
+
+    # Execute search_web tool
+    result = agent._execute_tool("search_web", "python tutorials")
+
+    assert "MOCK SEARCH RESULTS" in result
+    assert "python tutorials" in result
+
+
+def test_execute_unknown_tool_raises_error():
+    """Agent should raise ValueError for unknown tool names."""
+    mock_client = Mock()
+    agent = Agent(client=mock_client, max_iterations=3)
+
+    # Try to execute non-existent tool
+    try:
+        agent._execute_tool("nonexistent_tool", "some input")
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert "Unknown tool" in str(e)
+        assert "nonexistent_tool" in str(e)
