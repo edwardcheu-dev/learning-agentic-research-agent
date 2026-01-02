@@ -47,12 +47,26 @@ Follow this workflow:
 
    CRITICAL: Documentation is REQUIRED after each GROUP, not just at the end.
 
+   After Each GROUP:
    - Append a summary to docs/learning-logs/phase-$ARGUMENTS-log.md
    - Include: what was built, key decisions, code snippets with explanations, sample output
    - Update docs/checklists/phase-$ARGUMENTS.md to mark GROUP as complete
    - Commit all documentation together:
-     git add docs/checklists/phase-$ARGUMENTS.md docs/learning-logs/phase-$ARGUMENTS-log.md docs/implementation_plans/phase-$ARGUMENTS.md
-     git commit -m "docs: update implementation plan, checklist, and learning log after GROUP X"
+     git add docs/checklists/phase-$ARGUMENTS.md docs/learning-logs/phase-$ARGUMENTS-log.md
+     git commit -m "docs: update checklist and learning log after GROUP X"
+
+   After FINAL GROUP (Phase Complete):
+   - Complete the Phase Summary section in docs/learning-logs/phase-$ARGUMENTS-log.md
+   - Update MASTER_LOG.md with Phase $ARGUMENTS section (implementation details, architecture, patterns)
+   - Update CLAUDE.md Development Patterns ONLY if you discovered GENERAL, REUSABLE patterns
+   - Commit: git commit -m "docs: complete Phase $ARGUMENTS documentation"
+
+   Documentation Guidelines:
+   - phase-$ARGUMENTS-log.md: Detailed session-by-session implementation log
+   - MASTER_LOG.md: High-level tutorial explaining how the system works (phase-specific patterns and architecture)
+   - CLAUDE.md Development Patterns: ONLY general patterns that apply across ALL phases
+     * What goes in CLAUDE.md: Testing strategies, error handling conventions, code organization
+     * What does NOT go in CLAUDE.md: ReAct loops, RAG pipelines, MCP servers (those go in MASTER_LOG.md)
 
    After documenting:
    - Provide a standardized summary in the following format:
@@ -68,8 +82,10 @@ Follow this workflow:
      ## Token Usage
      Currently at ~[X]k / 200k tokens ([Y]%) - [assessment of remaining capacity]
 
-     ## CLAUDE.md Updates
-     [Any patterns/updates needed for CLAUDE.md, or "No updates needed yet"]
+     ## Documentation Updates
+     - Phase log updated: ✅
+     - [If final GROUP] MASTER_LOG.md: [Pending/Completed]
+     - [If final GROUP] CLAUDE.md: [Updated with general patterns / No general patterns to add]
 
    - ASK USER if they want to /clear before continuing to next GROUP
 

@@ -385,7 +385,220 @@ This is CORRECT behavior - safety net is working!
 
 ### Development Patterns
 
-Patterns established during development will be documented here.
+**Purpose**: This section documents GENERAL, REUSABLE patterns that apply across ALL phases of the project.
+
+**What belongs here**:
+- Testing strategies (mocking, fixtures, test organization)
+- Error handling conventions
+- Code organization principles
+- Import and module patterns
+- Logging and debugging approaches
+
+**What does NOT belong here**:
+- Phase-specific implementation details (ReAct loops, RAG pipelines, MCP servers, etc.)
+- Specific algorithm implementations
+- Architecture decisions for particular features
+
+**See MASTER_LOG.md for**: Phase-specific patterns, implementation walkthroughs, and architecture details.
+
+---
+
+#### Testing Patterns for LLM/API Code
+
+**Mocking OpenAI/LLM Clients**:
+```python
+from unittest.mock import MagicMock
+
+def test_agent_calls_llm():
+    """Test agent behavior with mocked LLM client."""
+    # Create mock client
+    mock_client = MagicMock()
+
+    # Create nested mock for OpenAI response structure
+    mock_response = MagicMock()
+    mock_response.choices = [
+        MagicMock(message=MagicMock(content="LLM response text"))
+    ]
+    mock_client.chat.completions.create.return_value = mock_response
+
+    # Test code that uses client
+    agent = Agent(client=mock_client)
+    result = agent.run("query")
+
+    # Verify behavior
+    assert mock_client.chat.completions.create.called
+```
+
+**Multi-Turn Conversation Testing**:
+```python
+def test_multi_turn_conversation():
+    """Use side_effect for multiple LLM calls."""
+    mock_client = MagicMock()
+
+    # Define sequence of responses
+    response_1 = MagicMock()
+    response_1.choices = [MagicMock(message=MagicMock(content="First response"))]
+
+    response_2 = MagicMock()
+    response_2.choices = [MagicMock(message=MagicMock(content="Second response"))]
+
+    # Use side_effect for sequential returns
+    mock_client.chat.completions.create.side_effect = [response_1, response_2]
+
+    # Verify call count
+    assert mock_client.chat.completions.create.call_count == 2
+```
+
+**Integration Test Safety**:
+- ALL integration tests (tests that make real API calls) MUST be marked with `@pytest.mark.integration`
+- Tests require `ALLOW_INTEGRATION_TESTS=1` environment variable to run
+- Pre-commit hooks skip integration tests by default to prevent accidental costs
+- See CLAUDE.md "API Call Safety Net" section for full details
+
+**Verification Strategies**:
+- Use count assertions (`call_count`, `result.count("text")`) to verify behavior without over-specifying implementation
+- Avoid asserting exact strings - check for key phrases or patterns
+- Test both success and error paths
+
+---
+
+#### Code Organization Principles
+
+**Public vs Private Methods**:
+- Public methods: No underscore prefix, part of class API, require docstrings
+- Private methods: `_underscore` prefix, internal helpers, docstrings optional but recommended
+- Example: `Agent.run()` is public, `Agent._parse_action()` is private
+
+**Factory Functions**:
+```python
+def get_search_web_tool() -> Tool:
+    """Factory function for creating search_web tool."""
+    return Tool(
+        name="search_web",
+        description="Search the web for information",
+        function=_search_web_impl
+    )
+```
+- Use factory functions for object creation when you need flexibility
+- Makes testing easier (can mock factory instead of constructor)
+- Allows future changes to instantiation logic
+
+**Import Conventions**:
+- Use absolute imports from `src`: `from src.agents.tools import Tool`
+- Never use relative imports (`.tools`, `..config`)
+- Prevents import errors when running tests or scripts from different directories
+
+**Module Structure**:
+- `src/` contains all source code
+- `tests/` mirrors `src/` structure (e.g., `tests/agents/test_tools.py` tests `src/agents/tools.py`)
+- `docs/` contains documentation, checklists, logs
+- `data/` contains runtime data (databases, vector stores, caches)
+- `scripts/` contains utility scripts (testing, validation)
+
+---
+
+#### Error Handling Conventions
+
+**Exception Types**:
+- `ValueError`: Invalid inputs, unknown resources (e.g., unknown tool name)
+- `FileNotFoundError`: Missing files or directories
+- `KeyError`: Missing configuration or environment variables (wrap in `ValueError` with helpful message)
+- `RuntimeError`: Unexpected runtime conditions
+
+**When to Raise vs Catch**:
+- Early phases: Let exceptions bubble up for fast failure and debugging
+- Later phases: Add graceful error recovery (e.g., retry logic, fallbacks)
+- Always validate at system boundaries (environment variables, user input, external APIs)
+
+**Error Messages**:
+```python
+# BAD: Generic message
+raise ValueError("Invalid tool")
+
+# GOOD: Specific, actionable message
+raise ValueError(f"Unknown tool: {tool_name}. Available tools: {available_tools}")
+```
+
+**Environment Variable Validation**:
+```python
+def get_api_key() -> str:
+    """Get API key from environment with validation."""
+    api_key = os.getenv("POE_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "POE_API_KEY environment variable not set. "
+            "Please set it in your shell configuration (e.g., .zshrc)."
+        )
+    return api_key
+```
+
+---
+
+#### Configuration Management
+
+**CRITICAL: Always Use Centralized Config**:
+- ALL global settings MUST be defined in `src/config.py`
+- NEVER hardcode model names, API URLs, or defaults in other files
+- Import constants: `from src.config import MODEL_NAME, API_BASE_URL`
+
+**Pattern for Adding New Config**:
+1. Add constant to `src/config.py` with type hint
+2. Add docstring explaining purpose
+3. Update CLAUDE.md Configuration section
+4. Import and use in other modules
+
+**Environment Variables**:
+- Access via getter functions (e.g., `get_api_key()`) for validation
+- Never use `os.getenv()` directly in application code
+- Validate early (at startup, not during execution)
+
+---
+
+#### Documentation Standards
+
+**Docstring Requirements**:
+- ALL public functions, classes, and methods MUST have docstrings
+- Use Google-style format:
+  ```python
+  def function_name(arg1: str, arg2: int) -> str:
+      """Brief description of what the function does.
+
+      Args:
+          arg1: Description of arg1
+          arg2: Description of arg2
+
+      Returns:
+          Description of return value
+
+      Raises:
+          ValueError: Description of when this is raised
+      """
+  ```
+
+**Type Hint Conventions**:
+- ALL function parameters and return values MUST have type hints
+- Use modern syntax:
+  - `list[Tool]` NOT `List[Tool]`
+  - `dict[str, Any]` NOT `Dict[str, Any]`
+  - `str | None` NOT `Optional[str]`
+  - `tuple[str, str]` NOT `Tuple[str, str]`
+- Import from `typing` only when needed (`Any`, `Callable`, etc.)
+- Avoid `Any` when possible - use specific types
+
+**Code Comments**:
+- Only add comments where logic isn't self-evident
+- Don't comment WHAT the code does (code should be self-documenting)
+- Comment WHY decisions were made or edge cases handled
+- Avoid redundant comments:
+  ```python
+  # BAD: Redundant
+  # Create a list of tools
+  tools = []
+
+  # GOOD: Explains non-obvious decision
+  # Split on first colon only to allow colons in tool inputs
+  tool_name, tool_input = action_text.split(":", 1)
+  ```
 
 ## Important Notes
 

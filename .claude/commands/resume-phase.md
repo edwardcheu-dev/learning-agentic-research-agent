@@ -56,8 +56,14 @@ Follow the TDD workflow from .claude/commands/start-phase.md:
 - Append summary to docs/learning-logs/phase-$ARGUMENTS-log.md
 - Include: what was built, key decisions, code snippets, sample output
 - Commit: `git add docs/... && git commit -m "docs: update checklist and learning log after GROUP X"`
-- Provide standardized summary (see start-phase.md line 62-78)
+- Provide standardized summary (see start-phase.md line 72-90)
 - Ask user if they want to /clear before next GROUP
+
+**DOCUMENT After FINAL GROUP (Phase Complete):**
+- Complete Phase Summary in docs/learning-logs/phase-$ARGUMENTS-log.md
+- Update MASTER_LOG.md with phase-specific implementation details and patterns
+- Update CLAUDE.md Development Patterns ONLY if general, reusable patterns were discovered
+- See start-phase.md line 58-69 for documentation guidelines
 
 ### Step 4: Validation
 
