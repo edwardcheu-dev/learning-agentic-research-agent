@@ -1,13 +1,19 @@
 """Basic ReAct agent implementation."""
 
-from src.agents.tools import get_all_tools
+from typing import Any
+
+from src.agents.tools import Tool, get_all_tools
 from src.config import MODEL_NAME
 
 
 class Agent:
     """A ReAct-style reasoning agent."""
 
-    def __init__(self, client, max_iterations: int):
+    client: Any
+    max_iterations: int
+    tools: list[Tool]
+
+    def __init__(self, client: Any, max_iterations: int) -> None:
         """Initialize the agent.
 
         Args:
