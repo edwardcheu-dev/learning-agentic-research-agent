@@ -34,3 +34,30 @@ def test_agent_builds_system_prompt_with_react_instructions():
     # Check for tool descriptions
     assert "search_web" in prompt
     assert "save_note" in prompt
+
+
+def test_parse_action_extracts_tool_name_and_input():
+    """Parser should extract tool name and input from Action line."""
+    mock_client = Mock()
+    agent = Agent(client=mock_client, max_iterations=3)
+
+    # Test basic action format
+    response = "Thought: I need to search\nAction: search_web: python tutorials"
+    result = agent._parse_action(response)
+
+    assert result is not None
+    tool_name, tool_input = result
+    assert tool_name == "search_web"
+    assert tool_input == "python tutorials"
+
+
+def test_parse_action_returns_none_when_no_action():
+    """Parser should return None if no Action found."""
+    mock_client = Mock()
+    agent = Agent(client=mock_client, max_iterations=3)
+
+    # Test response with no action
+    response = "Thought: I'm still thinking about this"
+    result = agent._parse_action(response)
+
+    assert result is None
