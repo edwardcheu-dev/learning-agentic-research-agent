@@ -154,9 +154,9 @@ Each commit follows the prefix convention:
 
 #### Code Highlights
 
-**Agent Initialization (src/agents/agent.py:9-18)**
+**Agent Initialization (src/agents/agent.py:16-25)**
 ```python
-def __init__(self, client, max_iterations: int):
+def __init__(self, client: Any, max_iterations: int) -> None:
     """Initialize the agent.
 
     Args:
@@ -168,10 +168,14 @@ def __init__(self, client, max_iterations: int):
     self.tools = get_all_tools()
 ```
 
-**System Prompt Builder (src/agents/agent.py:20-44)**
+**System Prompt Builder (src/agents/agent.py:27-52)**
 ```python
 def _build_system_prompt(self) -> str:
-    """Build the system prompt with ReAct instructions and tool descriptions."""
+    """Build the system prompt with ReAct instructions and tool descriptions.
+
+    Returns:
+        System prompt string with ReAct format and available tools
+    """
     tool_descriptions = "\n".join(
         f"- {tool.name}: {tool.description}" for tool in self.tools
     )
@@ -189,7 +193,8 @@ Answer: [Final answer to the user's question]
 Available tools:
 {tool_descriptions}
 
-Always start with a Thought, then take an Action, wait for the Observation, and repeat until you can provide a final Answer.
+Always start with a Thought, then take an Action, wait for the Observation,
+and repeat until you can provide a final Answer.
 """
 ```
 
@@ -297,17 +302,28 @@ dcb3302 feat: implement _build_system_prompt() with ReAct format
 
 #### Code Highlights
 
-**Action Parser (src/agents/agent.py:46-70)**
+**Action Parser (src/agents/agent.py:54-78)**
 ```python
 def _parse_action(self, response: str) -> tuple[str, str] | None:
-    """Parse action from LLM response."""
+    """Parse action from LLM response.
+
+    Args:
+        response: LLM response text
+
+    Returns:
+        Tuple of (tool_name, tool_input) if action found, None otherwise
+    """
+    # Look for "Action: " in the response
     if "Action:" not in response:
         return None
 
+    # Extract the action line
     for line in response.split("\n"):
         if line.strip().startswith("Action:"):
-            action_text = line.strip()[7:].strip()  # Remove "Action: "
+            # Remove "Action: " prefix
+            action_text = line.strip()[7:].strip()
 
+            # Split on first ":" to separate tool_name from input
             if ":" in action_text:
                 tool_name, tool_input = action_text.split(":", 1)
                 return (tool_name.strip(), tool_input.strip())
@@ -315,21 +331,41 @@ def _parse_action(self, response: str) -> tuple[str, str] | None:
     return None
 ```
 
-**Tool Executor (src/agents/agent.py:72-91)**
+**Tool Executor (src/agents/agent.py:80-99)**
 ```python
 def _execute_tool(self, tool_name: str, tool_input: str) -> str:
-    """Execute a tool by name with the given input."""
+    """Execute a tool by name with the given input.
+
+    Args:
+        tool_name: Name of the tool to execute
+        tool_input: Input string to pass to the tool
+
+    Returns:
+        Result string from the tool execution
+
+    Raises:
+        ValueError: If tool_name is not found
+    """
+    # Find the tool by name
     for tool in self.tools:
         if tool.name == tool_name:
             return tool.function(tool_input)
 
+    # Tool not found
     raise ValueError(f"Unknown tool: {tool_name}")
 ```
 
-**Observation Formatter (src/agents/agent.py:93-102)**
+**Observation Formatter (src/agents/agent.py:101-110)**
 ```python
 def _format_observation(self, result: str) -> str:
-    """Format tool result as an observation."""
+    """Format tool result as an observation.
+
+    Args:
+        result: Tool execution result
+
+    Returns:
+        Formatted observation string with label
+    """
     return f"Observation: {result}"
 ```
 
@@ -428,18 +464,28 @@ a73aea9 feat: implement _format_observation() to label tool results
    - **Detection**: No "Action:" in response indicates final answer provided
    - **Efficiency**: Saves API calls when agent completes task early
 
-4. **Model Hardcoded**: Used `"gpt-4"` in LLM call
-   - **Rationale**: Simple for Phase 1; will make configurable in later phases
-   - **Note**: Can be parameterized in future refactoring
+4. **Configuration Integration**: Uses `MODEL_NAME` and `DEFAULT_MAX_TOKENS` from `src/config.py`
+   - **Rationale**: Single source of truth for configuration prevents drift
+   - **Benefit**: Easy to change model or settings project-wide
+   - **Critical**: `max_tokens` parameter required for POE API stability
 
 #### Code Highlights
 
-**Main Run Loop (src/agents/agent.py:104-153)**
+**Main Run Loop (src/agents/agent.py:112-163)**
 ```python
 def run(self, query: str) -> str:
-    """Run the agent on a query using ReAct loop."""
+    """Run the agent on a query using ReAct loop.
+
+    Args:
+        query: User's question or request
+
+    Returns:
+        String containing the conversation history with all reasoning steps
+    """
+    # Build system prompt
     system_prompt = self._build_system_prompt()
 
+    # Initialize conversation
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": query},
@@ -451,7 +497,9 @@ def run(self, query: str) -> str:
     for iteration in range(self.max_iterations):
         # Call LLM
         response = self.client.chat.completions.create(
-            model="gpt-4", messages=messages
+            model=MODEL_NAME,
+            messages=messages,
+            max_tokens=DEFAULT_MAX_TOKENS,  # Critical for POE API stability
         )
 
         llm_response = response.choices[0].message.content
@@ -900,16 +948,16 @@ Phase 1 successfully implemented a **single-agent ReAct (Reasoning and Acting) s
 
 ### File Summary
 
-**Core Implementation** (267 lines):
-- `src/agents/tools.py` (56 lines) - Tool interface and placeholders
-- `src/agents/agent.py` (164 lines) - ReAct agent logic
-- `src/main.py` (80 lines) - Interactive REPL
-- `src/config.py` (66 lines) - Configuration constants
+**Core Implementation** (262 lines):
+- `src/agents/tools.py` (55 lines) - Tool interface and placeholders
+- `src/agents/agent.py` (163 lines) - ReAct agent logic
+- `src/main.py` (79 lines) - Interactive REPL
+- `src/config.py` (65 lines) - Configuration constants
 
-**Test Suite** (298 lines):
-- `tests/agents/test_tools.py` (66 lines) - Tool system tests
-- `tests/agents/test_agent.py` (112 lines) - Agent unit tests
-- `tests/agents/test_integration.py` (180 lines) - End-to-end tests
+**Test Suite** (422 lines):
+- `tests/agents/test_tools.py` (52 lines) - Tool system tests
+- `tests/agents/test_agent.py` (191 lines) - Agent unit tests
+- `tests/agents/test_integration.py` (179 lines) - End-to-end tests
 
 **Coverage**: >90% (all core logic covered)
 
