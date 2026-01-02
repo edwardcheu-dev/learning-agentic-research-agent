@@ -1,6 +1,6 @@
 """Tests for placeholder tool implementations."""
 
-from src.agents.tools import Tool
+from src.agents.tools import Tool, get_search_web_tool
 
 
 def test_placeholder():
@@ -16,3 +16,14 @@ def test_tool_has_name_and_description():
     assert tool.name == "test_tool"
     assert tool.description == "A test tool"
     assert callable(tool.function)
+
+
+def test_search_web_tool_returns_mock_results():
+    """search_web tool returns placeholder search results."""
+    tool = get_search_web_tool()
+    result = tool.function("python tutorials")
+
+    assert "MOCK SEARCH RESULTS" in result
+    assert "python tutorials" in result
+    assert tool.name == "search_web"
+    assert "search" in tool.description.lower()
