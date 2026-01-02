@@ -147,3 +147,44 @@ def test_agent_respects_max_iterations():
     # Verify result contains observations from both iterations
     observation_count = result.count("Observation:")
     assert observation_count == 2
+
+
+def test_agent_stops_when_final_answer_provided():
+    """Agent should stop when LLM provides Answer instead of Action."""
+    mock_client = Mock()
+
+    # First call: Action, Second call: Final Answer
+    responses = [
+        Mock(
+            choices=[
+                Mock(
+                    message=Mock(
+                        content="Thought: I'll search\nAction: search_web: info"
+                    )
+                )
+            ]
+        ),
+        Mock(
+            choices=[
+                Mock(
+                    message=Mock(
+                        content="Thought: I have enough info\nAnswer: Here is the final answer"
+                    )
+                )
+            ]
+        ),
+    ]
+    mock_client.chat.completions.create.side_effect = responses
+
+    agent = Agent(client=mock_client, max_iterations=5)
+    result = agent.run("Test query")
+
+    # Should stop after 2 calls (action + answer), not max_iterations (5)
+    assert mock_client.chat.completions.create.call_count == 2
+
+    # Verify result contains final answer
+    assert "Answer:" in result
+    assert "Here is the final answer" in result
+
+    # Only one observation (from first action)
+    assert result.count("Observation:") == 1
