@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from src.agents.async_agent import AsyncAgent
+from src.tui.events import AgentEvent
 
 
 @pytest.mark.asyncio
@@ -45,3 +46,41 @@ async def test_async_agent_run_returns_conversation():
     assert "Observation:" in result
     assert "MOCK SEARCH RESULTS" in result
     assert "python tutorials" in result
+
+
+@pytest.mark.asyncio
+async def test_async_agent_run_streaming_yields_agent_events():
+    """AsyncAgent.run_streaming() should yield AgentEvent for each token."""
+    mock_client = AsyncMock()
+
+    # Mock streaming response with multiple chunks
+    async def mock_stream_iter():
+        """Async generator that yields streaming chunks."""
+        # Token chunks
+        yield Mock(choices=[Mock(delta=Mock(content="Hello"))])
+        yield Mock(choices=[Mock(delta=Mock(content=" world"))])
+        yield Mock(choices=[Mock(delta=Mock(content="!"))])
+
+    # Mock the streaming response
+    mock_streaming_response = mock_stream_iter()
+    mock_client.chat.completions.create.return_value = mock_streaming_response
+
+    agent = AsyncAgent(client=mock_client, max_iterations=3)
+
+    # Collect events from streaming
+    events = []
+    async for event in agent.run_streaming("Test query"):
+        events.append(event)
+
+    # Verify we received AgentEvent objects
+    assert all(isinstance(event, AgentEvent) for event in events)
+
+    # Verify we got token events
+    token_events = [e for e in events if e.type == "token"]
+    assert len(token_events) > 0
+
+    # Verify token content matches streaming chunks
+    token_contents = [e.content for e in token_events]
+    assert "Hello" in token_contents
+    assert " world" in token_contents
+    assert "!" in token_contents

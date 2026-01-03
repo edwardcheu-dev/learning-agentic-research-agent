@@ -1,9 +1,10 @@
 """Async ReAct agent implementation."""
 
-from typing import Any
+from typing import Any, AsyncGenerator
 
 from src.agents.tools import Tool, get_all_tools
 from src.config import DEFAULT_MAX_TOKENS, MODEL_NAME
+from src.tui.events import AgentEvent
 
 
 class AsyncAgent:
@@ -169,3 +170,65 @@ repeat Thought/Action as needed until you can provide a final Answer.
             messages.append({"role": "user", "content": observation})
 
         return conversation.strip()
+
+    async def run_streaming(self, query: str) -> AsyncGenerator[AgentEvent, None]:
+        """Run the agent on a query with streaming token events.
+
+        Args:
+            query: User's question or request
+
+        Yields:
+            AgentEvent objects for each token and ReAct step
+        """
+        # Build system prompt
+        system_prompt = self._build_system_prompt()
+
+        # Initialize conversation
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": query},
+        ]
+
+        # ReAct loop
+        for iteration in range(self.max_iterations):
+            # Call LLM with streaming enabled
+            stream = await self.client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                max_tokens=DEFAULT_MAX_TOKENS,
+                stream=True,  # Enable streaming
+            )
+
+            # Collect full response while yielding tokens
+            llm_response = ""
+            async for chunk in stream:
+                # Extract token from chunk
+                delta = chunk.choices[0].delta
+                if hasattr(delta, "content") and delta.content:
+                    token = delta.content
+                    llm_response += token
+
+                    # Yield token event
+                    yield AgentEvent(
+                        type="token",
+                        content=token,
+                        metadata={"iteration": iteration},
+                    )
+
+            # Parse action
+            action = self._parse_action(llm_response)
+
+            # If no action, agent has provided final answer
+            if action is None:
+                break
+
+            # Execute tool
+            tool_name, tool_input = action
+            tool_result = self._execute_tool(tool_name, tool_input)
+
+            # Format observation
+            observation = self._format_observation(tool_result)
+
+            # Add to conversation for next iteration
+            messages.append({"role": "assistant", "content": llm_response})
+            messages.append({"role": "user", "content": observation})
