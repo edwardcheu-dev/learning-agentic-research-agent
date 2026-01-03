@@ -26,15 +26,15 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [x] Manual verification: Run `uv run python src/main.py --tui` and test query
 - [x] Update learning log with GROUP 2 progress
 
-## GROUP 3: Async Agent Foundation
-- [ ] Test: AsyncAgent initializes with same params as Agent
-- [ ] Implement: Create src/agents/async_agent.py with AsyncAgent class
-- [ ] Test: AsyncAgent.run() returns same result as Agent.run()
-- [ ] Implement: Add async def run(self, query: str) -> str method
-- [ ] Test: TUI app uses AsyncAgent instead of Agent
-- [ ] Implement: Update app.py to use await self.agent.run(query)
-- [ ] Verify: Behavior identical to GROUP 2 but using async/await
-- [ ] Update learning log with GROUP 3 progress
+## GROUP 3: Async Agent Foundation ✅
+- [x] Test: AsyncAgent initializes with same params as Agent
+- [x] Implement: Create src/agents/async_agent.py with AsyncAgent class
+- [x] Test: AsyncAgent.run() returns same result as Agent.run()
+- [x] Implement: Add async def run(self, query: str) -> str method
+- [x] Test: TUI app uses AsyncAgent instead of Agent
+- [x] Implement: Update app.py to use await self.agent.run(query)
+- [x] Verify: Behavior identical to GROUP 2 but using async/await
+- [x] Update learning log with GROUP 3 progress
 
 ## GROUP 4: Streaming LLM Tokens
 - [ ] Test: AgentEvent has type, content, metadata attributes

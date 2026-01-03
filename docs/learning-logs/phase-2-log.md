@@ -242,9 +242,212 @@ def main() -> None:
 **Next Steps**:
 GROUP 3 will create AsyncAgent foundation (async/await without streaming yet) to prepare for GROUP 4's token streaming.
 
-### GROUP 3: Async Agent Foundation
+### GROUP 3: Async Agent Foundation ✅
 
-(To be filled in during implementation)
+**What We Built**:
+Created an async version of the Agent class (AsyncAgent) and migrated the TUI to use async/await patterns. This establishes the foundation for streaming LLM tokens in GROUP 4 while maintaining identical behavior to the synchronous agent.
+
+**Completed Tasks**:
+- [x] Test: AsyncAgent initializes with same params as Agent (tests/agents/test_async_agent.py)
+- [x] Implement: AsyncAgent class with __init__, tools, max_iterations (src/agents/async_agent.py)
+- [x] Test: AsyncAgent.run() returns same result as Agent.run() (async test with AsyncMock)
+- [x] Implement: async def run(self, query: str) -> str method (converted Agent.run to async)
+- [x] Test: TUI app uses AsyncAgent instead of Agent (tests/tui/test_app.py)
+- [x] Implement: Updated app.py to use AsyncAgent and async on_input_submitted() (src/tui/app.py)
+- [x] Verify: Behavior identical to GROUP 2 but using async/await (manual TUI test passed)
+
+**Key Decisions**:
+
+1. **Code Reuse**: Copied Agent implementation to AsyncAgent instead of inheritance
+   - **Rationale**: AsyncAgent.run() is fundamentally different (async/await) from Agent.run()
+   - **Trade-off**: Some code duplication vs cleaner separation of sync/async concerns
+   - **Benefit**: Easier to add streaming in GROUP 4 without affecting synchronous Agent
+
+2. **Textual Event Handlers Support Async**: on_input_submitted() can be async
+   - **Discovery**: Textual natively supports async event handlers
+   - **Impact**: No need for run_in_executor() or complex threading
+   - **Pattern**: `async def on_input_submitted(self, event: Input.Submitted) -> None`
+
+3. **Mock Strategy**: Use AsyncMock for async functions
+   - **Pattern**: `mock_agent.run = AsyncMock(return_value="response")`
+   - **Testing**: `await app.on_input_submitted(event)` to wait for async handler
+   - **Assertion**: `mock_agent.run.assert_called_once_with("query")`
+
+**Code Highlights**:
+
+```python
+# src/agents/async_agent.py - Async ReAct Agent
+class AsyncAgent:
+    """An async ReAct-style reasoning agent."""
+
+    def __init__(self, client: Any, max_iterations: int) -> None:
+        """Initialize the async agent."""
+        self.client = client
+        self.max_iterations = max_iterations
+        self.tools = get_all_tools()
+
+    async def run(self, query: str) -> str:
+        """Run the agent on a query using ReAct loop (async version)."""
+        # Build system prompt
+        system_prompt = self._build_system_prompt()
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": query},
+        ]
+        conversation = f"User: {query}\n\n"
+
+        # ReAct loop
+        for iteration in range(self.max_iterations):
+            # Call LLM (async) - KEY DIFFERENCE from Agent
+            response = await self.client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                max_tokens=DEFAULT_MAX_TOKENS,
+            )
+            llm_response = response.choices[0].message.content
+            conversation += f"{llm_response}\n\n"
+
+            # Parse action and execute tool (synchronous, unchanged)
+            action = self._parse_action(llm_response)
+            if action is None:
+                break
+            tool_name, tool_input = action
+            tool_result = self._execute_tool(tool_name, tool_input)
+            observation = self._format_observation(tool_result)
+            conversation += f"{observation}\n\n"
+
+            # Add to conversation for next iteration
+            messages.append({"role": "assistant", "content": llm_response})
+            messages.append({"role": "user", "content": observation})
+
+        return conversation.strip()
+```
+
+```python
+# src/tui/app.py - Updated to use AsyncAgent
+from src.agents.async_agent import AsyncAgent  # Changed from Agent
+
+class ResearchAssistantApp(App):
+    def __init__(self) -> None:
+        """Initialize the TUI app with async agent."""
+        super().__init__()
+        client = create_client()
+        self.agent = AsyncAgent(client=client, max_iterations=DEFAULT_MAX_ITERATIONS)
+
+    async def on_input_submitted(self, event: Input.Submitted) -> None:
+        """Handle user input submission (async)."""
+        query = event.value
+        if not query.strip():
+            return
+
+        # Clear input and display query
+        self.query_one(Input).value = ""
+        conversation = self.query_one("#conversation")
+        conversation.mount(QueryDisplay(query))
+
+        # Run agent and display response (async) - KEY DIFFERENCE
+        response = await self.agent.run(query)
+        conversation.mount(ResponseDisplay(response))
+```
+
+```python
+# tests/agents/test_async_agent.py - Testing Async Agent
+@pytest.mark.asyncio
+async def test_async_agent_run_returns_conversation():
+    """AsyncAgent.run() should return conversation with ReAct steps."""
+    mock_client = AsyncMock()  # Use AsyncMock for async client
+    mock_response = Mock()
+    mock_response.choices = [Mock()]
+    mock_response.choices[0].message.content = (
+        "Thought: I should search\nAction: search_web: python tutorials"
+    )
+    mock_client.chat.completions.create.return_value = mock_response
+
+    agent = AsyncAgent(client=mock_client, max_iterations=3)
+    result = await agent.run("Find me python tutorials")  # await async method
+
+    assert mock_client.chat.completions.create.called
+    assert "Observation:" in result
+    assert "MOCK SEARCH RESULTS" in result
+```
+
+```python
+# tests/tui/test_app.py - Testing Async TUI
+@patch("src.tui.app.create_client")
+@patch("src.tui.app.AsyncAgent")  # Changed from Agent
+async def test_input_submission_calls_agent_and_displays_result(
+    self, mock_agent_class, mock_create_client
+):
+    """Test that submitting input calls agent.run() and displays the result."""
+    mock_client = Mock()
+    mock_create_client.return_value = mock_client
+    mock_agent = AsyncMock()  # Use AsyncMock for async agent
+    mock_agent.run = AsyncMock(return_value="This is the agent's answer.")
+    mock_agent_class.return_value = mock_agent
+
+    app = ResearchAssistantApp()
+    async with app.run_test():
+        input_widget = app.query_one("Input")
+        event = Input.Submitted(input_widget, value="What is machine learning?")
+        await app.on_input_submitted(event)  # await async handler
+
+        mock_agent.run.assert_called_once_with("What is machine learning?")
+        # Verify displays were added
+        assert len(app.query("#conversation QueryDisplay")) == 1
+        assert len(app.query("#conversation ResponseDisplay")) == 1
+```
+
+**Challenges Encountered**:
+
+1. **Pre-commit Hook Blocking Failing Tests**
+   - **Issue**: Test for AsyncAgent.run() failed because method didn't exist yet
+   - **Fix**: Committed test and implementation together in single commit
+   - **Learning**: TDD with pre-commit hooks requires committing pairs (test + impl) together
+
+2. **Updating Existing Tests**
+   - **Issue**: Old test patched `src.tui.app.Agent` which no longer exists
+   - **Fix**: Updated all tests to patch `src.tui.app.AsyncAgent` and use AsyncMock
+   - **Learning**: Migration requires updating all related tests, not just new ones
+
+3. **AsyncOpenAI vs OpenAI Client** ⚠️ **Critical Fix**
+   - **Issue**: `TypeError: object ChatCompletion can't be used in 'await' expression`
+   - **Root Cause**: `openai.OpenAI` client is synchronous, can't be awaited
+   - **Fix**: Created `create_async_client()` using `openai.AsyncOpenAI`
+   - **Code Change**: Updated `src/tui/app.py` to use `create_async_client()`
+   - **Learning**: OpenAI SDK provides separate async client for async/await support
+   - **Impact**: TUI now correctly uses async client, making agent.run() awaitable
+
+**Testing Insights**:
+
+1. **Async Test Patterns**:
+   - Use `@pytest.mark.asyncio` decorator for async tests
+   - Use `AsyncMock()` for mocking async functions/methods
+   - Use `await` when calling async methods in tests
+   - Assert on AsyncMock the same way as regular Mock
+
+2. **Test Coverage**: Added 3 new tests
+   - test_async_agent_initialization
+   - test_async_agent_run_returns_conversation
+   - test_app_uses_async_agent
+
+3. **Full Test Suite**: All 37 tests passing (0 failures, 4 deselected integration tests)
+
+**Commits**:
+- `d111baf`: test: add test for AsyncAgent initialization
+- `8d70951`: feat: create AsyncAgent class with initialization
+- `002cec4`: test: add test for AsyncAgent.run() method
+- `3c102ce`: test: add test for TUI app using AsyncAgent
+- `7cd23d9`: fix: use AsyncOpenAI client for async agent support (CRITICAL FIX)
+
+**Next Steps**:
+GROUP 4 will implement streaming LLM tokens by modifying AsyncAgent.run() to yield AgentEvent objects incrementally, and creating a StreamingText widget to display tokens as they arrive.
+
+**Verification**:
+Manually ran `uv run python src/main.py --tui` to verify:
+- TUI renders correctly with header, input, conversation area, footer
+- App initializes with AsyncAgent
+- No runtime errors or async/await issues
+- Behavior identical to GROUP 2 (synchronous version)
 
 ### GROUP 4: Streaming LLM Tokens
 
