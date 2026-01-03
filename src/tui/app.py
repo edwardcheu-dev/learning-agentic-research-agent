@@ -66,3 +66,5 @@ class ResearchAssistantApp(App):
         async for agent_event in self.agent.run_streaming(query):
             if agent_event.type == "token":
                 streaming_widget.append_token(agent_event.content)
+            elif agent_event.type == "observation":
+                streaming_widget.append_token(agent_event.content)

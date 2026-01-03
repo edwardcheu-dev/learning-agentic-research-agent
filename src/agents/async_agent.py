@@ -229,6 +229,20 @@ repeat Thought/Action as needed until you can provide a final Answer.
             # Format observation
             observation = self._format_observation(tool_result)
 
+            # Yield newline before observation for proper formatting
+            yield AgentEvent(
+                type="token",
+                content="\n",
+                metadata={"iteration": iteration},
+            )
+
+            # Yield observation event
+            yield AgentEvent(
+                type="observation",
+                content=observation,
+                metadata={"iteration": iteration, "tool": tool_name},
+            )
+
             # Add to conversation for next iteration
             messages.append({"role": "assistant", "content": llm_response})
             messages.append({"role": "user", "content": observation})
