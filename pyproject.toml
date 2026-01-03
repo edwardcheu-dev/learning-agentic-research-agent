@@ -19,6 +19,7 @@ dev = [
     "pre-commit>=4.5.1",
     "pyright>=1.1.407",
     "pytest>=9.0.2",
+    "pytest-asyncio>=0.25.2",
     "pytest-cov>=6.0.0",
     "ruff>=0.14.10",
 ]
@@ -41,6 +42,9 @@ markers = [
     "integration: marks tests as integration (requires ALLOW_INTEGRATION_TESTS=1, makes real API calls)",
     "slow: marks tests as slow running",
 ]
+# Configure pytest-asyncio
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
 line-length = 88
