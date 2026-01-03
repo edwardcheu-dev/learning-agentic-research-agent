@@ -97,19 +97,30 @@ research-assistant/
 
 ## Implementation Phases
 
-### Phase 1: Basic Agentic Loop
+### Phase 1: Basic Agentic Loop ✅
 
 Build a single agent with ReAct-style reasoning loop (Think → Act → Observe → Repeat). Implement basic tools: search_web, save_note.
 
-### Phase 2: MCP Integration
+### Phase 2: Textual TUI
+
+Replace REPL with professional Textual-based TUI featuring streaming output, progressive disclosure, and visual hierarchy. Essential for debugging multi-step agent reasoning in later phases.
+
+**Key Features:**
+- Streaming tokens appear character-by-character as LLM generates
+- Thought/Action/Observation sections are collapsible/expandable
+- Status indicators (pending/running/done) for each ReAct step
+- Keyboard shortcuts: F1 help, F2 logs, Ctrl+L clear
+- Toggleable debug log panel for development
+
+### Phase 3: MCP Integration (formerly Phase 2)
 
 Create MCP servers for filesystem, SQLite memory, and web search. Connect agents to tools via MCP protocol.
 
-### Phase 3: RAG System
+### Phase 4: RAG System (formerly Phase 3)
 
 Implement document chunking, embedding generation, vector storage with ChromaDB, and semantic retrieval.
 
-### Phase 4: A2A Multi-Agent
+### Phase 5: A2A Multi-Agent (formerly Phase 4)
 
 Split into specialized agents communicating via A2A protocol. Orchestrator coordinates Researcher, Writer, and Fact-Checker.
 

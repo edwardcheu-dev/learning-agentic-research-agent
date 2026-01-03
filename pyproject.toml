@@ -10,6 +10,8 @@ dependencies = [
     "fastmcp>=2.14.2",
     "openai>=2.14.0",
     "pydantic>=2.12.5",
+    "rich>=13.0.0",
+    "textual>=1.0.0",
 ]
 
 [dependency-groups]

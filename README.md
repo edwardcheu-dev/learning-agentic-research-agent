@@ -2,21 +2,22 @@
 
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![Phase 1 Complete](https://img.shields.io/badge/Phase%201-Complete-green.svg)
-![Phase 2-4 Planned](https://img.shields.io/badge/Phase%202--4-Planned-yellow.svg)
+![Phase 2-5 Planned](https://img.shields.io/badge/Phase%202--5-Planned-yellow.svg)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 
 ## About This Project
 
-A hands-on learning journey building a multi-agent AI system from scratch. This repository demonstrates core agentic AI concepts through incremental development: **ReAct loops → MCP integration → RAG → A2A communication**.
+A hands-on learning journey building a multi-agent AI system from scratch. This repository demonstrates core agentic AI concepts through incremental development: **ReAct loops → Textual TUI → MCP integration → RAG → A2A communication**.
 
 **Why this project exists**: To deeply understand agentic AI by building, testing, and documenting each component step-by-step.
 
 ## Project Status
 
 - ✅ **Phase 1 COMPLETE**: ReAct agent with web search and note-saving (422 lines of tests, 66%+ coverage)
-- 📋 **Phase 2 PLANNED**: MCP integration (filesystem, memory, vector store)
-- 📋 **Phase 3 PLANNED**: RAG system with ChromaDB and semantic search
-- 📋 **Phase 4 PLANNED**: Multi-agent orchestration with A2A protocol
+- 📋 **Phase 2 PLANNED**: Textual TUI with streaming and progressive disclosure
+- 📋 **Phase 3 PLANNED**: MCP integration (filesystem, memory, vector store) - formerly Phase 2
+- 📋 **Phase 4 PLANNED**: RAG system with ChromaDB and semantic search - formerly Phase 3
+- 📋 **Phase 5 PLANNED**: Multi-agent orchestration with A2A protocol - formerly Phase 4
 
 ## Quick Start
 
@@ -74,7 +75,8 @@ its readability and versatility.
 
 **Phase logs** (detailed implementation notes):
 - **Phase 1**: [`docs/learning-logs/phase-1-log.md`](docs/learning-logs/phase-1-log.md) - ReAct loop implementation
-- Phase 2-4: Coming as each phase is completed
+- **Phase 2**: [`docs/learning-logs/phase-2-log.md`](docs/learning-logs/phase-2-log.md) - Textual TUI (in progress)
+- Phase 3-5: Coming as each phase is completed
 
 **Checklists**: [`docs/checklists/`](docs/checklists/) - Track progress through each phase
 
