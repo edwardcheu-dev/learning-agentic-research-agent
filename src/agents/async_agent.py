@@ -243,6 +243,13 @@ repeat Thought/Action as needed until you can provide a final Answer.
                 metadata={"iteration": iteration, "tool": tool_name},
             )
 
+            # Yield newline after observation for proper formatting
+            yield AgentEvent(
+                type="token",
+                content="\n",
+                metadata={"iteration": iteration},
+            )
+
             # Add to conversation for next iteration
             messages.append({"role": "assistant", "content": llm_response})
             messages.append({"role": "user", "content": observation})
