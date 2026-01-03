@@ -224,6 +224,11 @@ echo $POE_API_KEY
 - Master tutorial: `docs/learning-logs/MASTER_LOG.md`
 - Enhancement tracking: `docs/enhancements/` (post-MVP improvements)
 
+**Manual Verification:**
+- Test plans: `docs/test-plans/phase-N-group-M.md`
+- Test plan overview: `docs/test-plans/README.md`
+- Workflow: See `.claude/commands/start-phase.md` and `resume-phase.md`
+
 **For workflow details**, see [CONTRIBUTING.md](CONTRIBUTING.md):
 - [Development Workflow](CONTRIBUTING.md#development-workflow) - TDD cycle, commit prefixes
 - [Code Quality Standards](CONTRIBUTING.md#code-quality-standards) - Pre-commit hooks, testing, type checking
@@ -257,6 +262,23 @@ echo $POE_API_KEY
 - Enforces TDD workflow (separate test/implementation commits)
 - Ensures code quality without manual `just check` calls
 - Makes git history clean and educational
+
+**Manual Verification Workflow**:
+
+When implementing GROUPs that require manual verification:
+1. Complete implementation and automated tests
+2. Create test plan: `docs/test-plans/phase-N-group-M.md` (use existing plans as templates)
+3. Update checklist with "Manual Verification" section showing ⏸️ PENDING status
+4. Pause and ask user to verify using test plan
+5. Wait for user approval (APPROVED / ISSUES)
+6. Update checklist to ✅ VERIFIED or ⚠️ ISSUES FOUND
+7. Document results in learning log
+8. Only proceed to next GROUP after verification complete
+
+When resuming phases:
+- Check for pending verifications before continuing implementation
+- Prioritize manual verifications over new development
+- See `.claude/commands/resume-phase.md` for detection logic
 
 ## Development Patterns
 

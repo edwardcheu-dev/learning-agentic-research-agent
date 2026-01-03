@@ -45,6 +45,7 @@ For each implementation phase:
    - Write test first: `just test-commit "add test for X"`
    - Write minimal implementation: `just feat-commit "implement X"`
    - Refactor if needed: `just refactor-commit "refactor X"`
+   - If GROUP requires manual verification: Create test plan and wait for user approval
 4. **DOCUMENT**: After each logical group of commits:
    - Append summary to `docs/learning-logs/phase-N-log.md`
    - Update `CLAUDE.md` with patterns learned
@@ -66,6 +67,46 @@ After completing a logical group of checklist items:
 3. Periodically update `MASTER_LOG.md` to aggregate all phase logs into a coherent narrative
 
 The `MASTER_LOG.md` should read like a tutorial: "Read this to understand how this repo works."
+
+### Manual Verification Workflow
+
+Some implementation phases require manual user verification beyond automated tests (e.g., UI/UX validation, streaming behavior, visual polish).
+
+**When Manual Verification is Required**:
+
+After completing a GROUP that requires manual verification (indicated in checklist):
+
+1. **Create Test Plan**: Document step-by-step verification instructions in `docs/test-plans/phase-N-group-M.md`
+   - Prerequisites (environment setup)
+   - Verification steps with expected outcomes
+   - Edge cases to test
+   - Success criteria checklist
+   - Troubleshooting guide
+
+2. **Update Checklist**: Add "Manual Verification" section to GROUP in checklist
+   - Status: ⏸️ PENDING USER VERIFICATION
+   - Link to test plan
+   - Checkbox: "User has verified and approved"
+
+3. **Wait for User Approval**: User follows test plan and reports:
+   - APPROVED: All checks passed
+   - ISSUES: Describe what failed
+
+4. **Document Results**: Add "Manual Verification Results" section to learning log
+   - Status (PENDING / VERIFIED / ISSUES FOUND)
+   - What was verified
+   - Any issues found and resolutions
+
+5. **Update Status**: Mark verification as ✅ VERIFIED in checklist
+
+**Test Plan Template**:
+
+See `docs/test-plans/README.md` for structure and `docs/test-plans/phase-2-group-2.md` for example.
+
+**Verification Status Markers**:
+- ⏸️ PENDING USER VERIFICATION - Implementation done, awaiting user
+- ✅ VERIFIED - User approved, can proceed
+- ⚠️ ISSUES FOUND - User found problems, needs fixing
 
 ## Commit Message Format
 

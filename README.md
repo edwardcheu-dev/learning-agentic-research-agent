@@ -49,6 +49,7 @@ Try asking: `"Search for Python programming"`
 - **Type-safe configuration and error handling** - Centralize settings, validate environment variables early
 - **Professional Python project structure with uv** - Modern package management, proper module organization
 - **Pre-commit hooks and code quality automation** - Ruff, Pyright, pytest running on every commit
+- **Manual verification workflows for UX validation** - Test plans ensure user experience beyond automated tests
 
 ## Demo: Phase 1 Agent in Action
 
