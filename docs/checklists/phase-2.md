@@ -25,10 +25,11 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [x] Implement: Add on_input_submitted() handler in app.py
 - [x] Update learning log with GROUP 2 progress
 
-**Manual Verification**: ⏸️ PENDING USER VERIFICATION
+**Manual Verification**: ✅ VERIFIED
 - Test plan: `docs/test-plans/phase-2-group-2.md`
-- Status: Implementation complete, awaiting user verification
-- [ ] User has verified and approved GROUP 2
+- Status: Verified 2026-01-04
+- [x] User has verified and approved GROUP 2
+- Notes: Test plan updated to reflect GROUP 2 scope (only 'q' shortcut; F1/F2 in GROUP 7)
 
 **To Verify**:
 1. Launch TUI and verify UI renders correctly

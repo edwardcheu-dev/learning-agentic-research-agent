@@ -42,7 +42,7 @@ uv run python src/main.py --tui
 - [ ] Header displays "Research Assistant" or similar title
 - [ ] Conversation area is visible and empty
 - [ ] Input field shows placeholder: "Type your question..."
-- [ ] Footer shows: F1:Help, F2:Logs, q:Quit (or similar)
+- [ ] Footer shows: q:Quit (Note: F1/F2 shortcuts will be added in GROUP 7)
 
 **If Failed**:
 - Check error message
@@ -98,22 +98,20 @@ uv run python src/main.py --tui
 
 ---
 
-### Step 4: Keyboard Shortcuts
+### Step 4: Keyboard Shortcuts (Basic)
 
 **Action**:
-1. Press F1 (Help)
-2. Press F2 (Logs) - if implemented
-3. Press Ctrl+C or 'q' to quit
+1. Press 'q' to quit
+2. Press Ctrl+C to quit
 
 **Expected Outcome**:
-- F1: Help modal or message appears
-- F2: Log panel toggles (if implemented in this GROUP)
-- Ctrl+C or 'q': Application exits cleanly
+- 'q' or Ctrl+C: Application exits cleanly
 
 **Visual Check**:
-- [ ] F1 shows help information
-- [ ] F2 toggles logs (or shows "not implemented" message)
 - [ ] 'q' exits without errors
+- [ ] Ctrl+C exits without errors
+
+**Note**: F1 (Help), F2 (Logs), and Ctrl+L (Clear) will be added in GROUP 7.
 
 **If Failed**:
 - Check bindings in ResearchAssistantApp class
@@ -198,7 +196,7 @@ uv run python src/main.py --repl
 - [ ] User can submit queries via input field
 - [ ] Agent responses appear in conversation area
 - [ ] Conversation history is maintained
-- [ ] Keyboard shortcuts work (F1, q)
+- [ ] Keyboard shortcut works (q to quit)
 
 **Quality Requirements**:
 - [ ] No crashes during normal usage
