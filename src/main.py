@@ -1,14 +1,18 @@
 """
-Interactive REPL for the Research Assistant agent.
+Interactive interface for the Research Assistant agent.
 
 This is the main entry point for running the agent interactively.
+Supports both TUI (default) and REPL modes.
 Users can ask questions and see the ReAct reasoning process in action.
 """
+
+import argparse
 
 import openai
 
 from src.agents.agent import Agent
 from src.config import API_BASE_URL, DEFAULT_MAX_ITERATIONS, get_api_key
+from src.tui.app import ResearchAssistantApp
 
 
 def create_client() -> openai.OpenAI:
@@ -26,7 +30,38 @@ def create_client() -> openai.OpenAI:
     )
 
 
-def main() -> None:
+def parse_args(args: list[str] | None = None) -> argparse.Namespace:
+    """Parse command-line arguments.
+
+    Args:
+        args: List of arguments to parse (for testing). If None, uses sys.argv.
+
+    Returns:
+        Parsed arguments with mode attribute.
+    """
+    parser = argparse.ArgumentParser(
+        description="Research Assistant - Multi-agent AI system"
+    )
+    parser.add_argument(
+        "--tui",
+        action="store_const",
+        const="tui",
+        dest="mode",
+        help="Launch the Textual TUI interface (default)",
+    )
+    parser.add_argument(
+        "--repl",
+        action="store_const",
+        const="repl",
+        dest="mode",
+        help="Launch the classic REPL interface",
+    )
+    parser.set_defaults(mode="tui")
+
+    return parser.parse_args(args)
+
+
+def run_repl() -> None:
     """Run the interactive REPL for the Research Assistant."""
     print("=" * 60)
     print("Research Assistant - Phase 1: Basic Agentic Loop")
@@ -73,6 +108,22 @@ def main() -> None:
         except Exception as e:
             print(f"\nError: {e}")
             print("Please try again or type 'quit' to exit.")
+
+
+def run_tui() -> None:
+    """Run the Textual TUI interface for the Research Assistant."""
+    app = ResearchAssistantApp()
+    app.run()
+
+
+def main() -> None:
+    """Main entry point - parse arguments and launch appropriate interface."""
+    args = parse_args()
+
+    if args.mode == "repl":
+        run_repl()
+    else:
+        run_tui()
 
 
 if __name__ == "__main__":
