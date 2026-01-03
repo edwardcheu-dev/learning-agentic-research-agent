@@ -93,6 +93,7 @@ Pre-commit hooks will reject commits without a valid prefix.
 
 - Python 3.12+
 - [uv](https://github.com/astral-sh/uv) package manager (NOT pip)
+- [just](https://github.com/casey/just) command runner (install via `uv tool install just`)
 - POE API key (for OpenAI API access)
 
 ### Initial Setup
@@ -102,18 +103,17 @@ Pre-commit hooks will reject commits without a valid prefix.
 git clone https://github.com/edwardcheu-dev/learning-agentic-research-agent.git
 cd learning-agentic-research-agent
 
-# Install dependencies
-uv sync
+# Install just command runner
+uv tool install just
 
-# Install pre-commit hooks (REQUIRED)
-uv run pre-commit install
-uv run pre-commit install --hook-type commit-msg
+# Setup project (dependencies + pre-commit hooks)
+just setup
 
 # Set environment variable
 export POE_API_KEY="your-poe-api-key"
 
 # Verify setup
-uv run pytest
+just test
 ```
 
 ## Code Quality Standards
@@ -130,19 +130,15 @@ Pre-commit hooks run automatically on every commit and enforce:
 
 **Recommended workflow before committing**:
 ```bash
-# Format and fix issues proactively
-uv run ruff check . --fix
-uv run ruff format .
-
-# Run tests
-uv run pytest
+# Run all quality checks (includes formatting, linting, type checking, tests, and file fixers)
+just check
 
 # Stage and commit
 git add .
 git commit -m "feat: your changes here"
 ```
 
-This prevents pre-commit from reformatting and requiring a second commit.
+The `just check` command runs all pre-commit hooks proactively, preventing the need for a second commit due to auto-fixes.
 
 **Manual hook execution** (without committing):
 ```bash
@@ -153,6 +149,25 @@ uv run pre-commit run --all-files
 ```bash
 git commit --no-verify
 ```
+
+### Common Commands
+
+Available commands via `just`:
+
+```bash
+just --list              # Show all available commands
+just setup               # Install dependencies and setup hooks
+just check               # Run all quality checks (recommended before commit)
+just test                # Run tests
+just test-cov            # Run tests with coverage
+just fmt                 # Format code only
+just lint                # Lint code only
+just typecheck           # Type check only
+just run                 # Run the agent REPL
+just clean               # Clean generated files
+```
+
+For detailed command implementations, see [`Justfile`](Justfile) in the project root.
 
 ### Testing Standards
 
@@ -165,13 +180,16 @@ git commit --no-verify
 **Running tests**:
 ```bash
 # Run all tests (integration tests skipped by default)
-uv run pytest
+just test
 
 # Run with coverage report
-uv run pytest --cov=src
+just test-cov
 
-# Run specific test file
+# Run specific test file (use uv directly)
 uv run pytest tests/agents/test_agent.py
+
+# Run integration tests (requires ALLOW_INTEGRATION_TESTS=1)
+just test-integration
 ```
 
 **Testing standards**:

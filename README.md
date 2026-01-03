@@ -25,14 +25,17 @@ A hands-on learning journey building a multi-agent AI system from scratch. This 
 git clone https://github.com/edwardcheu-dev/learning-agentic-research-agent.git
 cd learning-agentic-research-agent
 
-# Install dependencies (requires uv package manager)
-uv sync
+# Install just command runner (requires uv package manager)
+uv tool install just
+
+# Setup project (dependencies + pre-commit hooks)
+just setup
 
 # Set required environment variables
 export POE_API_KEY="your-poe-api-key"
 
 # Run the Phase 1 agent (interactive REPL)
-uv run python src/main.py
+just run
 ```
 
 Try asking: `"Search for Python programming"`
@@ -109,11 +112,13 @@ User → Agent (ReAct Loop) → Tools → [Web Search | Filesystem | Vector Stor
 
 ## Development Workflow
 
-**Quick commands**:
+**Quick commands** (via `just`):
 ```bash
-uv sync                  # Install dependencies
-uv run python src/main.py # Run the agent
-uv run pytest            # Run tests (integration skipped)
+just setup               # Install dependencies + setup hooks
+just run                 # Run the agent
+just test                # Run tests (integration skipped)
+just check               # Run all quality checks (before commit)
+just --list              # Show all available commands
 ```
 
 **Post-milestone workflow** (capture insights and improvements):

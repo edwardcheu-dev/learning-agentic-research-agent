@@ -129,19 +129,25 @@ High-priority enhancements (P0/P1) may be promoted into the MVP roadmap. See [do
 
 All commands use uv. Never use pip directly.
 
-**Install dependencies:**
+**Setup (first time)**:
 ```bash
-uv sync
+uv tool install just         # Install just command runner
+uv sync                      # Install dependencies
+just setup                   # Setup pre-commit hooks
 ```
 
-**Run the main application:**
+**Common development commands**:
 ```bash
-uv run python src/main.py
+just check                   # Run all quality checks (recommended before commit)
+just test                    # Run tests
+just run                     # Run the agent REPL
+just --list                  # Show all available commands
 ```
 
-**Run tests:**
+**Manual commands** (if not using just):
 ```bash
-uv run pytest                # All tests (integration skipped)
+uv run python src/main.py    # Run the agent
+uv run pytest                # Run tests
 uv run pytest --cov=src      # With coverage
 ```
 
