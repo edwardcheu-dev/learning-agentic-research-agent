@@ -2,7 +2,7 @@
 
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![Phase 1 Complete](https://img.shields.io/badge/Phase%201-Complete-green.svg)
-![Phase 2 In Progress](https://img.shields.io/badge/Phase%202-In%20Progress-orange.svg)
+![Phase 2 50% Complete](https://img.shields.io/badge/Phase%202-50%25%20Complete-orange.svg)
 ![Phase 3-5 Planned](https://img.shields.io/badge/Phase%203--5-Planned-yellow.svg)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 
@@ -15,14 +15,14 @@ A hands-on learning journey building a multi-agent AI system from scratch. This 
 ## Project Status
 
 - ✅ **Phase 1 COMPLETE**: ReAct agent with web search and note-saving (422 lines of tests, 66%+ coverage)
-- 🔄 **Phase 2 IN PROGRESS (60%)**: Textual TUI with async agent, streaming tokens, and basic UI shell (Groups 1-4 complete, 5-8 pending)
+- 🔄 **Phase 2 IN PROGRESS (50%)**: Textual TUI with async agent, streaming tokens, and basic UI shell (Groups 1-4 complete, 5-8 pending)
 - 📋 **Phase 3 PLANNED**: MCP integration (filesystem, memory, vector store)
 - 📋 **Phase 4 PLANNED**: RAG system with ChromaDB and semantic search
 - 📋 **Phase 5 PLANNED**: Multi-agent orchestration with A2A protocol
 
 ## Phase 2 Progress Details
 
-**Completed Groups (60%)**:
+**Completed Groups (50%)**:
 - ✅ GROUP 1: Dependencies (textual, rich)
 - ✅ GROUP 2: Basic TUI Shell (header, input, conversation container)
 - ✅ GROUP 3: Async Agent Foundation (AsyncAgent class with async/await)
@@ -34,9 +34,9 @@ A hands-on learning journey building a multi-agent AI system from scratch. This 
 - ⏸️ GROUP 7: Keyboard Navigation (F1 help, F2 logs, Ctrl+L clear)
 - ⏸️ GROUP 8: Documentation & Finalization
 
-**Manual Verifications Pending**:
-- Group 2: Basic TUI rendering and input submission ([test plan](docs/test-plans/phase-2-group-2.md))
-- Group 4: Token streaming performance ([test plan](docs/test-plans/phase-2-group-4.md))
+**Manual Verifications**:
+- ✅ Group 2: Basic TUI rendering and input submission ([test plan](docs/test-plans/phase-2-group-2.md)) - Verified 2026-01-04
+- ✅ Group 4: Token streaming performance ([test plan](docs/test-plans/phase-2-group-4.md)) - Verified 2026-01-04
 
 See [`docs/checklists/phase-2.md`](docs/checklists/phase-2.md) for detailed progress tracking.
 
@@ -93,7 +93,7 @@ The Textual-based interface shows:
 - **Streaming Response**: Agent's response appears character-by-character as the LLM generates tokens
 - **Collapsible Sections** (Groups 5-6, coming soon): Thought/Action/Observation nodes with progressive disclosure
 
-Current Phase 2 status: **60% complete** (streaming tokens working, ReAct visualization pending)
+Current Phase 2 status: **50% complete** (streaming tokens working, ReAct visualization pending)
 
 ---
 
@@ -127,7 +127,7 @@ its readability and versatility.
 
 **Phase logs** (detailed implementation notes):
 - **Phase 1** (✅ Complete): [`phase-1-log.md`](docs/learning-logs/phase-1-log.md) - ReAct loop implementation
-- **Phase 2** (🔄 In Progress - 60%): [`phase-2-log.md`](docs/learning-logs/phase-2-log.md) - Textual TUI with async agent and streaming (Groups 1-4 documented)
+- **Phase 2** (🔄 In Progress - 50%): [`phase-2-log.md`](docs/learning-logs/phase-2-log.md) - Textual TUI with async agent and streaming (Groups 1-4 documented)
 - **Phase 3-5**: Coming as each phase is completed
 
 **Manual Verification**: [`docs/test-plans/`](docs/test-plans/) - UX validation test plans (2 pending for Phase 2)
