@@ -116,6 +116,14 @@ uv run python src/main.py # Run the agent
 uv run pytest            # Run tests (integration skipped)
 ```
 
+**Post-milestone workflow** (capture insights and improvements):
+```bash
+/codebase-qa              # Interactive Q&A about implementation
+/update-learnings         # Auto-capture architectural insights
+/propose-enhancements     # Auto-extract improvement ideas
+```
+See [.claude/commands/](.claude/commands/) for command details.
+
 **For complete workflow**, see [CONTRIBUTING.md](CONTRIBUTING.md):
 - [Pre-commit hooks](CONTRIBUTING.md#pre-commit-hooks) - Auto-formatting, type checking, tests
 - [Testing standards](CONTRIBUTING.md#testing-standards) - TDD workflow, coverage requirements
