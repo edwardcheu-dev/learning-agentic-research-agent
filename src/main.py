@@ -8,26 +8,10 @@ Users can ask questions and see the ReAct reasoning process in action.
 
 import argparse
 
-import openai
-
 from src.agents.agent import Agent
-from src.config import API_BASE_URL, DEFAULT_MAX_ITERATIONS, get_api_key
+from src.client import create_client
+from src.config import DEFAULT_MAX_ITERATIONS
 from src.tui.app import ResearchAssistantApp
-
-
-def create_client() -> openai.OpenAI:
-    """Create OpenAI client configured for POE API.
-
-    Returns:
-        Configured OpenAI client instance
-
-    Raises:
-        ValueError: If POE_API_KEY environment variable is not set
-    """
-    return openai.OpenAI(
-        api_key=get_api_key(),
-        base_url=API_BASE_URL,
-    )
 
 
 def parse_args(args: list[str] | None = None) -> argparse.Namespace:

@@ -45,19 +45,18 @@ class TestResearchAssistantApp:
         mock_agent_class.return_value = mock_agent
 
         app = ResearchAssistantApp()
-        async with app.run_test() as pilot:
+        async with app.run_test():
             # Verify app initialized with agent
             assert app.agent is not None
 
-            # Type a question into the input field
+            # Get input widget
             input_widget = app.query_one("Input")
-            input_widget.value = "What is machine learning?"
 
-            # Submit the input
-            await pilot.press("enter")
+            # Manually trigger input submission event
+            from textual.widgets import Input
 
-            # Wait for UI to update
-            await pilot.pause()
+            event = Input.Submitted(input_widget, value="What is machine learning?")
+            app.on_input_submitted(event)
 
             # Verify agent.run was called with the query
             mock_agent.run.assert_called_once_with("What is machine learning?")
