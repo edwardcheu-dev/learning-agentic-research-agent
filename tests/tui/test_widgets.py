@@ -2,7 +2,7 @@
 
 from textual.app import App
 
-from src.tui.widgets import QueryDisplay, ResponseDisplay
+from src.tui.widgets import QueryDisplay, ResponseDisplay, StreamingText
 
 
 class TestQueryDisplay:
@@ -47,3 +47,39 @@ class TestResponseDisplay:
             # Static widget stores content in renderable which is a Rich renderable
             rendered = str(response_display.render())
             assert "Machine learning is a branch of AI..." in rendered
+
+
+class TestStreamingText:
+    """Test the StreamingText widget."""
+
+    async def test_streaming_text_appends_tokens_incrementally(self):
+        """Test that StreamingText appends tokens one by one."""
+
+        class TestApp(App):
+            """Test app to host StreamingText."""
+
+            def compose(self):
+                yield StreamingText()
+
+        app = TestApp()
+        async with app.run_test():
+            streaming_text = app.query_one(StreamingText)
+
+            # Initially empty
+            rendered = str(streaming_text.render())
+            assert rendered == ""
+
+            # Append first token
+            streaming_text.append_token("Hello")
+            rendered = str(streaming_text.render())
+            assert "Hello" in rendered
+
+            # Append second token
+            streaming_text.append_token(" world")
+            rendered = str(streaming_text.render())
+            assert "Hello world" in rendered
+
+            # Append third token
+            streaming_text.append_token("!")
+            rendered = str(streaming_text.render())
+            assert "Hello world!" in rendered

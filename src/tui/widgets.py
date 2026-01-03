@@ -31,3 +31,24 @@ class ResponseDisplay(Static):
             response: The agent's response to display.
         """
         super().__init__(f"[bold green]Agent:[/bold green] {response}")
+
+
+class StreamingText(Static):
+    """Widget that displays text incrementally as tokens arrive.
+
+    Used to show LLM responses being generated in real-time, character-by-character.
+    """
+
+    def __init__(self) -> None:
+        """Initialize StreamingText with empty content."""
+        super().__init__("")
+        self._content = ""
+
+    def append_token(self, token: str) -> None:
+        """Append a token to the streaming text.
+
+        Args:
+            token: The text token to append
+        """
+        self._content += token
+        self.update(self._content)
