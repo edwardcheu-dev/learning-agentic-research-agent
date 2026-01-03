@@ -148,3 +148,49 @@ async def test_async_agent_streaming_adds_newline_before_observation():
 
     assert token_before_obs.type == "token"
     assert "\n" in token_before_obs.content or token_before_obs.content == "\n"
+
+
+@pytest.mark.asyncio
+async def test_async_agent_streaming_adds_newline_after_observation():
+    """AsyncAgent.run_streaming() adds newline after observation."""
+    mock_client = AsyncMock()
+
+    # First iteration: Action that triggers tool
+    async def mock_stream_first():
+        """First LLM call with action."""
+        yield Mock(choices=[Mock(delta=Mock(content="Thought: Search\n"))])
+        yield Mock(choices=[Mock(delta=Mock(content="Action: search_web: test"))])
+
+    # Second iteration: Final answer (no action)
+    async def mock_stream_second():
+        """Second LLM call with answer."""
+        yield Mock(choices=[Mock(delta=Mock(content="Answer: Result"))])
+
+    # Mock client to return different streams for each call
+    call_count = 0
+
+    async def mock_create(**kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return mock_stream_first()
+        else:
+            return mock_stream_second()
+
+    mock_client.chat.completions.create = mock_create
+
+    agent = AsyncAgent(client=mock_client, max_iterations=3)
+
+    # Collect events
+    events = []
+    async for event in agent.run_streaming("Test query"):
+        events.append(event)
+
+    # Find observation and the token after it
+    event_types = [e.type for e in events]
+    obs_index = event_types.index("observation")
+
+    # Next event after observation should be a newline token
+    token_after_obs = events[obs_index + 1]
+    assert token_after_obs.type == "token"
+    assert token_after_obs.content == "\n"
