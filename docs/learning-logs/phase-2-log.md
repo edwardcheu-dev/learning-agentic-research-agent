@@ -49,18 +49,48 @@ This log documents the implementation of Phase 2: migrating from the basic REPL 
 
 ### GROUP 1: Phase Restructuring & Setup ✅
 
-**Completed**:
-- [x] Created implementation plan (docs/implementation_plans/phase-2.md)
-- [x] Created checklist (docs/checklists/phase-2.md)
-- [x] Updated CLAUDE.md with new phase structure
-- [x] Updated README.md with Phase 2 status
-- [x] Created developer-experience.md enhancement category
-- [x] Created this learning log stub
-- [ ] Added textual and rich dependencies (in progress)
-- [ ] Ran uv sync to install dependencies (pending)
+**What We Built**:
+Set up the Phase 2 foundation by restructuring project documentation and installing TUI dependencies.
 
-**Key learnings**:
-- (To be filled in as implementation progresses)
+**Completed Tasks**:
+- [x] Created comprehensive implementation plan (docs/implementation_plans/phase-2.md)
+- [x] Created detailed checklist with 8 GROUPs (docs/checklists/phase-2.md)
+- [x] Updated CLAUDE.md - inserted Phase 2 (TUI), pushed MCP→3, RAG→4, A2A→5
+- [x] Updated README.md with new 5-phase roadmap
+- [x] Created developer-experience.md enhancement category (new DX tracking)
+- [x] Created this learning log stub
+- [x] Added `textual>=1.0.0` and `rich>=13.0.0` to pyproject.toml dependencies
+- [x] Ran `uv sync` - installed textual 7.0.0 + 4 supporting packages
+
+**Key Decisions**:
+
+1. **Phase Insertion vs Renumbering**: Chose to insert Phase 2 and renumber existing phases (2→3, 3→4, 4→5) rather than making TUI Phase 5. Rationale: TUI is essential for debugging multi-step reasoning in MCP/RAG/A2A phases.
+
+2. **Documentation First**: Created full implementation plan with documentation steps and context management workflow before any code. Ensures consistency with Phase 1 patterns and /start-phase workflow.
+
+3. **Enhancement Category**: Created new `developer-experience.md` category alongside existing schema-validation, agent-robustness, and observability categories. Captures DX improvements that don't fit other categories.
+
+**Dependencies Added**:
+```toml
+"rich>=13.0.0",      # Terminal formatting (Textual dependency)
+"textual>=1.0.0",    # TUI framework
+```
+
+Installed packages:
+- textual==7.0.0 (main TUI framework)
+- linkify-it-py==2.0.3 (link detection for rich text)
+- mdit-py-plugins==0.5.0 (markdown-it plugins)
+- uc-micro-py==1.0.3 (Unicode utilities)
+
+**Commits**:
+- `c3baf68`: docs: create Phase 2 implementation plan and setup
+- `bfdf9bf`: docs: update phase 2 plan with documentation steps and context management
+
+**Challenges**:
+None - GROUP 1 was purely documentation and dependency setup.
+
+**Next Steps**:
+GROUP 2 will create the basic Textual TUI shell (no streaming yet) with synchronous agent integration.
 
 ### GROUP 2: Basic TUI Shell
 
