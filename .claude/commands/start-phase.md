@@ -80,12 +80,17 @@ Test plans include:
    - **Manual Verification Results** (if applicable)
    - Sample output
 3. Update checklist to mark GROUP complete
-4. Commit both:
+4. Update README.md progress tracking:
+   - Recalculate phase percentage (completed_groups / total_groups)
+   - Update "Completed Groups" section with ✅ for finished GROUP
+   - If manual verification: Update "Manual Verifications" with ✅ status
+   - Update status badge if phase percentage changed significantly
+5. Commit all documentation:
    ```bash
-   just docs-commit "update checklist and learning log after GROUP X"
+   just docs-commit "update checklist, learning log, and README after GROUP X"
    ```
-5. Provide standardized summary (see template below)
-6. Ask user if they want to `/clear` before next GROUP
+6. Provide standardized summary (see template below)
+7. Ask user if they want to `/clear` before next GROUP
 
 **After FINAL GROUP** (Phase Complete):
 1. Complete Phase Summary in `docs/learning-logs/phase-$ARGUMENTS-log.md`
@@ -113,6 +118,7 @@ Currently at ~[X]k / 200k tokens ([Y]%) - [assessment]
 
 ## Documentation Updates
 - Phase log updated: ✅
+- README.md updated: ✅
 - [If final GROUP] MASTER_LOG.md: [Pending/Completed]
 - [If final GROUP] CLAUDE.md: [Updated / No general patterns to add]
 ```

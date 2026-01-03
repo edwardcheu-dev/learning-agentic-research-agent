@@ -118,7 +118,8 @@ Follow TDD workflow from [CONTRIBUTING.md#tdd-workflow-with-helper-commands](../
 **DOCUMENT After Each GROUP**:
 - Append summary to `docs/learning-logs/phase-$ARGUMENTS-log.md`
 - Include: what was built, key decisions, code snippets, sample output
-- Commit: `just docs-commit "update checklist and learning log after GROUP X"`
+- Update `README.md` with phase progress (percentage, completed groups, verification status)
+- Commit: `just docs-commit "update checklist, learning log, and README after GROUP X"`
 - Provide standardized summary (see [start-phase.md](start-phase.md))
 - Ask user if they want to `/clear` before next GROUP
 
