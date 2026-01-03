@@ -77,6 +77,7 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [ ] Implement: Add event handler to create ThoughtNode/ActionNode/ObservationNode
 - [ ] Manual verification: Verify separate sections with status indicators
 - [ ] Update learning log with GROUP 5 progress
+- [ ] Update README.md progress (5/8 = 62.5%, round to 63%)
 
 ## GROUP 6: Progressive Disclosure
 - [ ] Test: Nodes can be collapsed/expanded
@@ -87,6 +88,7 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [ ] Implement: Add logic to auto-collapse previous nodes
 - [ ] Manual verification: Click sections to verify expand/collapse
 - [ ] Update learning log with GROUP 6 progress
+- [ ] Update README.md progress (6/8 = 75%)
 
 ## GROUP 7: Keyboard Navigation & Polish
 - [ ] Test: F1 displays help screen with keybindings
@@ -98,6 +100,7 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [ ] Create: Add CSS styling for status indicators (green/yellow/gray)
 - [ ] Manual verification: Test all keyboard shortcuts and visual polish
 - [ ] Update learning log with GROUP 7 progress
+- [ ] Update README.md progress (7/8 = 87.5%, round to 88%)
 
 ## GROUP 8: Documentation & Finalization
 - [ ] Add docstrings to src/tui/app.py public functions
@@ -112,3 +115,6 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [ ] Run type checking: `uv run pyright`
 - [ ] Final coverage verification (target: ≥66%)
 - [ ] Final update to learning log with reflection
+- [ ] Update README.md progress (8/8 = 100%)
+- [ ] Update README.md Phase 2 status badge to "Complete"
+- [ ] Move Phase 2 to "COMPLETE" section in Project Status
