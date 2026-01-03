@@ -449,9 +449,170 @@ Manually ran `uv run python src/main.py --tui` to verify:
 - No runtime errors or async/await issues
 - Behavior identical to GROUP 2 (synchronous version)
 
-### GROUP 4: Streaming LLM Tokens
+### GROUP 4: Streaming LLM Tokens ✅
 
-(To be filled in during implementation)
+**What We Built**:
+Implemented character-by-character streaming of LLM responses in the TUI. Created an event-driven architecture where AsyncAgent yields AgentEvent objects for each token, and the TUI displays them incrementally using a StreamingText widget.
+
+**Completed Tasks**:
+- [x] Test: AgentEvent has type, content, metadata attributes (tests/tui/test_events.py)
+- [x] Implement: AgentEvent dataclass with type/content/metadata (src/tui/events.py)
+- [x] Test: run_streaming() yields AgentEvent for each token (tests/agents/test_async_agent.py)
+- [x] Implement: AsyncAgent.run_streaming() with stream=True (src/agents/async_agent.py)
+- [x] Test: StreamingText appends tokens incrementally (tests/tui/test_widgets.py)
+- [x] Implement: StreamingText widget with append_token() method (src/tui/widgets.py)
+- [x] Test: App processes AgentEvent stream and updates StreamingText (tests/tui/test_app.py)
+- [x] Implement: Streaming event loop in app.py (async for event in agent.run_streaming())
+- [x] Manual verification: Verified token-by-token display in TUI
+
+**Key Decisions**:
+
+1. **Event-Driven Architecture**: AgentEvent dataclass for decoupling
+   - **Pattern**: AsyncAgent yields `AgentEvent(type, content, metadata)` instead of strings
+   - **Benefit**: Easy to add new event types (thought, action, observation) in GROUP 5
+   - **Type Safety**: Literal type for event types prevents typos
+
+2. **OpenAI Streaming API**: Use `stream=True` parameter
+   - **API Call**: `await client.chat.completions.create(..., stream=True)`
+   - **Response**: Returns async iterator of chunks with delta.content
+   - **Token Extraction**: `if hasattr(delta, "content") and delta.content:`
+
+3. **Widget Update Pattern**: Call update() after appending tokens
+   - **Method**: `self.update(self._content)` triggers Textual re-render
+   - **State**: Maintain `_content` string internally, update widget on each token
+   - **Reactivity**: Textual automatically re-renders when update() is called
+
+**Code Highlights**:
+
+```python
+# src/tui/events.py - Event Dataclass
+from dataclasses import dataclass, field
+from typing import Any, Literal
+
+@dataclass
+class AgentEvent:
+    """Event emitted by AsyncAgent during streaming execution."""
+    type: Literal["thought", "action", "observation", "answer", "token"]
+    content: str
+    metadata: dict[str, Any] = field(default_factory=dict)
+```
+
+```python
+# src/agents/async_agent.py - Streaming Method
+async def run_streaming(self, query: str) -> AsyncGenerator[AgentEvent, None]:
+    """Run the agent on a query with streaming token events."""
+    # ... build system prompt and messages ...
+
+    for iteration in range(self.max_iterations):
+        # Call LLM with streaming enabled
+        stream = await self.client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            stream=True,  # Enable streaming
+        )
+
+        # Collect full response while yielding tokens
+        llm_response = ""
+        async for chunk in stream:
+            delta = chunk.choices[0].delta
+            if hasattr(delta, "content") and delta.content:
+                token = delta.content
+                llm_response += token
+
+                # Yield token event
+                yield AgentEvent(
+                    type="token",
+                    content=token,
+                    metadata={"iteration": iteration},
+                )
+
+        # Parse action, execute tool, etc...
+```
+
+```python
+# src/tui/widgets.py - StreamingText Widget
+class StreamingText(Static):
+    """Widget that displays text incrementally as tokens arrive."""
+
+    def __init__(self) -> None:
+        """Initialize StreamingText with empty content."""
+        super().__init__("")
+        self._content = ""
+
+    def append_token(self, token: str) -> None:
+        """Append a token to the streaming text."""
+        self._content += token
+        self.update(self._content)  # Trigger Textual re-render
+```
+
+```python
+# src/tui/app.py - Streaming Event Loop
+async def on_input_submitted(self, event: Input.Submitted) -> None:
+    """Handle user input submission with streaming."""
+    query = event.value
+    if not query.strip():
+        return
+
+    # Clear input and display query
+    self.query_one(Input).value = ""
+    conversation = self.query_one("#conversation")
+    conversation.mount(QueryDisplay(query))
+
+    # Create streaming text widget
+    streaming_widget = StreamingText()
+    conversation.mount(streaming_widget)
+
+    # Stream agent response token by token
+    async for agent_event in self.agent.run_streaming(query):
+        if agent_event.type == "token":
+            streaming_widget.append_token(agent_event.content)
+```
+
+**Challenges Encountered**:
+
+1. **Mock Strategy for Async Generators**
+   - **Issue**: AsyncMock wraps async generator in coroutine, can't use `async for`
+   - **Fix**: Mock run_streaming as plain async generator function, not AsyncMock
+   - **Pattern**: `mock_agent.run_streaming = async_generator_func` (not `AsyncMock(return_value=...)`)
+
+2. **Old Tests Breaking After Streaming Migration**
+   - **Issue**: Previous tests expected agent.run(), now app uses agent.run_streaming()
+   - **Fix**: Updated all TUI tests to mock run_streaming() with token events
+   - **Learning**: API changes require updating all dependent tests
+
+3. **Line Length Violation in Docstring**
+   - **Issue**: Ruff enforced 88-character line limit in docstrings
+   - **Fix**: Shortened docstring from 93 to 62 characters
+   - **Tool**: Ruff auto-fix didn't handle docstrings, required manual edit
+
+**Testing Insights**:
+
+1. **Async Generator Mocking Pattern**:
+   ```python
+   async def mock_streaming_events(query):
+       yield AgentEvent(type="token", content="Hello")
+       yield AgentEvent(type="token", content=" world")
+
+   mock_agent.run_streaming = mock_streaming_events  # Direct assignment
+   ```
+
+2. **Test Coverage**: Added 4 new tests
+   - test_agent_event_has_required_attributes
+   - test_async_agent_run_streaming_yields_agent_events
+   - test_streaming_text_appends_tokens_incrementally
+   - test_app_processes_streaming_events
+
+3. **Full Test Suite**: All 47 tests passing (0 failures, 4 deselected integration tests)
+
+**Commits**:
+- `faee30f`: test: add tests for AgentEvent dataclass
+- `b24c1dd`: feat: implement AsyncAgent.run_streaming() with token-by-token events
+- `0b5d7ee`: test: add test for StreamingText widget
+- `86f0aa6`: test: add test for app processing streaming events / feat: implement streaming event loop in TUI app
+
+**Next Steps**:
+GROUP 5 will implement ReAct step visualization by emitting separate event types (thought, action, observation) and creating specialized widgets (ThoughtNode, ActionNode, ObservationNode) with status indicators.
 
 ### GROUP 5: ReAct Step Visualization
 

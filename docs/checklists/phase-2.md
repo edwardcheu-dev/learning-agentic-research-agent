@@ -36,17 +36,17 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [x] Verify: Behavior identical to GROUP 2 but using async/await
 - [x] Update learning log with GROUP 3 progress
 
-## GROUP 4: Streaming LLM Tokens
-- [ ] Test: AgentEvent has type, content, metadata attributes
-- [ ] Implement: Create src/tui/events.py with AgentEvent dataclass
-- [ ] Test: run_streaming() yields AgentEvent for each token
-- [ ] Implement: Add async def run_streaming() to AsyncAgent with stream=True
-- [ ] Test: StreamingText appends tokens incrementally
-- [ ] Implement: Add StreamingText widget with append_token() method
-- [ ] Test: App processes AgentEvent stream and updates StreamingText
-- [ ] Implement: Add event loop in app.py: async for event in agent.run_streaming()
-- [ ] Manual verification: Verify text appears character-by-character
-- [ ] Update learning log with GROUP 4 progress
+## GROUP 4: Streaming LLM Tokens ✅
+- [x] Test: AgentEvent has type, content, metadata attributes
+- [x] Implement: Create src/tui/events.py with AgentEvent dataclass
+- [x] Test: run_streaming() yields AgentEvent for each token
+- [x] Implement: Add async def run_streaming() to AsyncAgent with stream=True
+- [x] Test: StreamingText appends tokens incrementally
+- [x] Implement: Add StreamingText widget with append_token() method
+- [x] Test: App processes AgentEvent stream and updates StreamingText
+- [x] Implement: Add event loop in app.py: async for event in agent.run_streaming()
+- [x] Manual verification: Verify text appears character-by-character
+- [x] Update learning log with GROUP 4 progress
 
 ## GROUP 5: ReAct Step Visualization
 - [ ] Test: ThoughtNode displays content and status indicator
