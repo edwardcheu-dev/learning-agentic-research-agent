@@ -31,15 +31,15 @@ class TestResearchAssistantApp:
             conversation = app.query_one("#conversation")
             assert conversation is not None
 
-    @patch("src.tui.app.create_client")
+    @patch("src.tui.app.create_async_client")
     @patch("src.tui.app.AsyncAgent")
     async def test_input_submission_calls_agent_and_displays_result(
-        self, mock_agent_class, mock_create_client
+        self, mock_agent_class, mock_create_async_client
     ):
         """Test that submitting input calls agent.run() and displays the result."""
-        # Mock client and async agent
+        # Mock async client and async agent
         mock_client = Mock()
-        mock_create_client.return_value = mock_client
+        mock_create_async_client.return_value = mock_client
         mock_agent = AsyncMock()
         mock_agent.run = AsyncMock(return_value="This is the agent's answer.")
         mock_agent_class.return_value = mock_agent
@@ -69,15 +69,15 @@ class TestResearchAssistantApp:
             response_displays = app.query("#conversation ResponseDisplay")
             assert len(response_displays) == 1
 
-    @patch("src.tui.app.create_client")
+    @patch("src.tui.app.create_async_client")
     @patch("src.tui.app.AsyncAgent")
     async def test_app_uses_async_agent(
-        self, mock_async_agent_class, mock_create_client
+        self, mock_async_agent_class, mock_create_async_client
     ):
         """Test that the app can use AsyncAgent instead of Agent."""
-        # Mock client and async agent
+        # Mock async client and async agent
         mock_client = Mock()
-        mock_create_client.return_value = mock_client
+        mock_create_async_client.return_value = mock_client
         mock_agent = AsyncMock()
         mock_agent.run = AsyncMock(return_value="Async agent response.")
         mock_async_agent_class.return_value = mock_agent

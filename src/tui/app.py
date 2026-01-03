@@ -5,7 +5,7 @@ from textual.containers import ScrollableContainer
 from textual.widgets import Footer, Header, Input
 
 from src.agents.async_agent import AsyncAgent
-from src.client import create_client
+from src.client import create_async_client
 from src.config import DEFAULT_MAX_ITERATIONS
 from src.tui.widgets import QueryDisplay, ResponseDisplay
 
@@ -27,8 +27,8 @@ class ResearchAssistantApp(App):
     def __init__(self) -> None:
         """Initialize the TUI app with async agent."""
         super().__init__()
-        # Create OpenAI client and async agent
-        client = create_client()
+        # Create async OpenAI client and async agent
+        client = create_async_client()
         self.agent = AsyncAgent(client=client, max_iterations=DEFAULT_MAX_ITERATIONS)
 
     def compose(self) -> ComposeResult:
