@@ -28,7 +28,7 @@ A hands-on learning journey building a multi-agent AI system from scratch. This 
 - ✅ GROUP 3: Async Agent Foundation (AsyncAgent class with async/await)
 - ✅ GROUP 4: Streaming LLM Tokens (AgentEvent stream, character-by-character display)
 
-**Pending Groups (40%)**:
+**Pending Groups**:
 - ⏸️ GROUP 5: ReAct Step Visualization (ThoughtNode, ActionNode, ObservationNode)
 - ⏸️ GROUP 6: Progressive Disclosure (collapsible sections)
 - ⏸️ GROUP 7: Keyboard Navigation (F1 help, F2 logs, Ctrl+L clear)
