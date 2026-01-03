@@ -23,8 +23,19 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [x] Implement: Modify src/main.py with argparse and run_tui()/run_repl() functions
 - [x] Test: Input submission calls agent.run() and displays result
 - [x] Implement: Add on_input_submitted() handler in app.py
-- [x] Manual verification: Run `uv run python src/main.py --tui` and test query
 - [x] Update learning log with GROUP 2 progress
+
+**Manual Verification**: ⏸️ PENDING USER VERIFICATION
+- Test plan: `docs/test-plans/phase-2-group-2.md`
+- Status: Implementation complete, awaiting user verification
+- [ ] User has verified and approved GROUP 2
+
+**To Verify**:
+1. Launch TUI and verify UI renders correctly
+2. Submit test queries and verify agent responses
+3. Test keyboard shortcuts (F1, q)
+4. Verify REPL fallback works with --repl flag
+5. Test edge cases (empty input, long queries, API errors)
 
 ## GROUP 3: Async Agent Foundation ✅
 - [x] Test: AsyncAgent initializes with same params as Agent
@@ -45,8 +56,19 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [x] Implement: Add StreamingText widget with append_token() method
 - [x] Test: App processes AgentEvent stream and updates StreamingText
 - [x] Implement: Add event loop in app.py: async for event in agent.run_streaming()
-- [x] Manual verification: Verify text appears character-by-character
 - [x] Update learning log with GROUP 4 progress
+
+**Manual Verification**: ⏸️ PENDING USER VERIFICATION
+- Test plan: `docs/test-plans/phase-2-group-4.md`
+- Status: Implementation complete, awaiting user verification
+- [ ] User has verified and approved GROUP 4
+
+**To Verify**:
+1. Launch TUI and submit query
+2. Verify tokens appear character-by-character (not all at once)
+3. Measure streaming latency (first token should appear quickly)
+4. Test multiple queries to verify streaming consistency
+5. Verify no visual glitches or text corruption
 
 ## GROUP 5: ReAct Step Visualization
 - [ ] Test: ThoughtNode displays content and status indicator

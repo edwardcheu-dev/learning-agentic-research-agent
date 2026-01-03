@@ -97,7 +97,13 @@ User Input → AsyncAgent.run_streaming(query)
 3. Main entry point routing - `--tui` and `--repl` flags
 4. Wire up synchronous agent - Input submission calls agent.run()
 
-**Manual Verification**: `uv run python src/main.py --tui`
+**Manual Verification Steps**:
+See `docs/test-plans/phase-2-group-2.md` for detailed verification guide.
+
+After implementation, Claude will:
+1. Create test plan document
+2. Provide summary of verification steps
+3. Wait for user approval before documenting GROUP completion
 
 **Documentation**: Update learning log after GROUP 2
 
@@ -121,6 +127,14 @@ User Input → AsyncAgent.run_streaming(query)
 2. Streaming agent method with `stream=True`
 3. StreamingText widget
 4. Wire streaming to TUI
+
+**Manual Verification Steps**:
+See `docs/test-plans/phase-2-group-4.md` for detailed verification guide.
+
+After implementation, Claude will:
+1. Create test plan document
+2. Provide summary of verification steps
+3. Wait for user approval before documenting GROUP completion
 
 **Documentation**: Update learning log after GROUP 4
 

@@ -44,6 +44,22 @@ For each checklist item, follow TDD cycle from [CONTRIBUTING.md#tdd-workflow-wit
 - Check off item in `docs/checklists/phase-$ARGUMENTS.md`
 - Update TodoWrite tool to reflect progress
 
+**Manual Verification (when GROUP requires it)**:
+1. Claude creates test plan: `docs/test-plans/phase-$ARGUMENTS-group-X.md`
+2. Claude provides verification summary and asks user to test
+3. User follows test plan steps manually
+4. User reports results (approve/issues found)
+5. Claude documents verification in learning log
+6. Only after user approval: proceed to next GROUP
+
+**Test Plan Template**:
+Test plans include:
+- Prerequisites (what must be running, environment setup)
+- Step-by-step verification instructions with expected outcomes
+- Edge cases to test
+- Success criteria checklist
+- Failure troubleshooting guide
+
 **Context Management**:
 - Monitor token budget (>50% used? suggest `/clear`)
 - Before clearing: commit work and update checklist
@@ -52,18 +68,24 @@ For each checklist item, follow TDD cycle from [CONTRIBUTING.md#tdd-workflow-wit
 ### 4. DOCUMENT
 
 **After Each GROUP**:
-1. Append summary to `docs/learning-logs/phase-$ARGUMENTS-log.md`
+1. If GROUP requires manual verification:
+   - Create test plan document
+   - Summarize verification steps for user
+   - WAIT for user approval before proceeding
+   - Document user approval in learning log
+2. Append summary to `docs/learning-logs/phase-$ARGUMENTS-log.md`
    - What was built
    - Key decisions
    - Code snippets with explanations
+   - **Manual Verification Results** (if applicable)
    - Sample output
-2. Update checklist to mark GROUP complete
-3. Commit both:
+3. Update checklist to mark GROUP complete
+4. Commit both:
    ```bash
    just docs-commit "update checklist and learning log after GROUP X"
    ```
-4. Provide standardized summary (see template below)
-5. Ask user if they want to `/clear` before next GROUP
+5. Provide standardized summary (see template below)
+6. Ask user if they want to `/clear` before next GROUP
 
 **After FINAL GROUP** (Phase Complete):
 1. Complete Phase Summary in `docs/learning-logs/phase-$ARGUMENTS-log.md`

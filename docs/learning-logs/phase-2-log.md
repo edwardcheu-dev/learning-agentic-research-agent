@@ -239,6 +239,21 @@ def main() -> None:
 - `12ec6dd`: test: add test for input submission and agent interaction
 - `eb0d4bd`: feat: implement input submission handler with agent integration
 
+**Manual Verification Results**:
+
+**Test Plan**: See `docs/test-plans/phase-2-group-2.md`
+
+**Status**: ⏸️ PENDING (awaiting user verification)
+
+**Note**: Automated tests were written and pass successfully. However, manual user experience verification is pending. The test plan provides step-by-step instructions for:
+- Launching TUI and verifying UI renders correctly
+- Submitting test queries and verifying agent responses
+- Testing keyboard shortcuts (F1, q)
+- Verifying REPL fallback with --repl flag
+- Testing edge cases (empty input, long queries, API errors)
+
+User verification will confirm that the TUI provides a good user experience beyond automated test coverage.
+
 **Next Steps**:
 GROUP 3 will create AsyncAgent foundation (async/await without streaming yet) to prepare for GROUP 4's token streaming.
 
@@ -610,6 +625,21 @@ async def on_input_submitted(self, event: Input.Submitted) -> None:
 - `b24c1dd`: feat: implement AsyncAgent.run_streaming() with token-by-token events
 - `0b5d7ee`: test: add test for StreamingText widget
 - `86f0aa6`: test: add test for app processing streaming events / feat: implement streaming event loop in TUI app
+
+**Manual Verification Results**:
+
+**Test Plan**: See `docs/test-plans/phase-2-group-4.md`
+
+**Status**: ⏸️ PENDING (awaiting user verification)
+
+**Note**: Automated tests were written and pass successfully. However, manual user experience verification is pending. The test plan provides step-by-step instructions for:
+- Launching TUI and verifying streaming works character-by-character
+- Measuring first token latency (should be <2 seconds)
+- Testing multiple queries for streaming consistency
+- Verifying no visual glitches or text corruption
+- Testing edge cases (very long responses, network latency, API errors)
+
+User verification will confirm that token-by-token streaming provides a good user experience and that the visual presentation is smooth without glitches.
 
 **Next Steps**:
 GROUP 5 will implement ReAct step visualization by emitting separate event types (thought, action, observation) and creating specialized widgets (ThoughtNode, ActionNode, ObservationNode) with status indicators.
