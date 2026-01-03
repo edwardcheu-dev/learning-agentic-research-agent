@@ -7,7 +7,7 @@ from textual.widgets import Footer, Header, Input
 from src.agents.async_agent import AsyncAgent
 from src.client import create_async_client
 from src.config import DEFAULT_MAX_ITERATIONS
-from src.tui.widgets import QueryDisplay, ResponseDisplay
+from src.tui.widgets import QueryDisplay, StreamingText
 
 
 class ResearchAssistantApp(App):
@@ -39,7 +39,7 @@ class ResearchAssistantApp(App):
         yield Footer()
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
-        """Handle user input submission (async).
+        """Handle user input submission with streaming (async).
 
         Args:
             event: Input submission event containing the user's query.
@@ -58,6 +58,11 @@ class ResearchAssistantApp(App):
         # Display user query
         conversation.mount(QueryDisplay(query))
 
-        # Run agent and display response (async)
-        response = await self.agent.run(query)
-        conversation.mount(ResponseDisplay(response))
+        # Create streaming text widget
+        streaming_widget = StreamingText()
+        conversation.mount(streaming_widget)
+
+        # Stream agent response token by token
+        async for agent_event in self.agent.run_streaming(query):
+            if agent_event.type == "token":
+                streaming_widget.append_token(agent_event.content)

@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from src.tui.app import ResearchAssistantApp
+from src.tui.events import AgentEvent
 
 
 class TestResearchAssistantApp:
@@ -36,12 +37,17 @@ class TestResearchAssistantApp:
     async def test_input_submission_calls_agent_and_displays_result(
         self, mock_agent_class, mock_create_async_client
     ):
-        """Test that submitting input calls agent.run() and displays the result."""
+        """Test that submitting input calls agent.run_streaming()."""
         # Mock async client and async agent
         mock_client = Mock()
         mock_create_async_client.return_value = mock_client
+
+        # Create async generator for streaming events
+        async def mock_streaming_events(query):
+            yield AgentEvent(type="token", content="This is the agent's answer.")
+
         mock_agent = AsyncMock()
-        mock_agent.run = AsyncMock(return_value="This is the agent's answer.")
+        mock_agent.run_streaming = mock_streaming_events
         mock_agent_class.return_value = mock_agent
 
         app = ResearchAssistantApp()
@@ -58,28 +64,30 @@ class TestResearchAssistantApp:
             event = Input.Submitted(input_widget, value="What is machine learning?")
             await app.on_input_submitted(event)
 
-            # Verify agent.run was called with the query
-            mock_agent.run.assert_called_once_with("What is machine learning?")
-
             # Verify QueryDisplay was added to conversation
             query_displays = app.query("#conversation QueryDisplay")
             assert len(query_displays) == 1
 
-            # Verify ResponseDisplay was added to conversation
-            response_displays = app.query("#conversation ResponseDisplay")
-            assert len(response_displays) == 1
+            # Verify StreamingText was added to conversation
+            streaming_widgets = app.query("#conversation StreamingText")
+            assert len(streaming_widgets) == 1
 
     @patch("src.tui.app.create_async_client")
     @patch("src.tui.app.AsyncAgent")
     async def test_app_uses_async_agent(
         self, mock_async_agent_class, mock_create_async_client
     ):
-        """Test that the app can use AsyncAgent instead of Agent."""
+        """Test that the app can use AsyncAgent with streaming."""
         # Mock async client and async agent
         mock_client = Mock()
         mock_create_async_client.return_value = mock_client
+
+        # Create async generator for streaming events
+        async def mock_streaming_events(query):
+            yield AgentEvent(type="token", content="Async agent response.")
+
         mock_agent = AsyncMock()
-        mock_agent.run = AsyncMock(return_value="Async agent response.")
+        mock_agent.run_streaming = mock_streaming_events
         mock_async_agent_class.return_value = mock_agent
 
         app = ResearchAssistantApp()
@@ -93,11 +101,49 @@ class TestResearchAssistantApp:
             event = Input.Submitted(input_widget, value="Test query")
             await app.on_input_submitted(event)
 
-            # Verify agent.run was called with the query
-            mock_agent.run.assert_called_once_with("Test query")
-
             # Verify displays were added
             query_displays = app.query("#conversation QueryDisplay")
             assert len(query_displays) == 1
-            response_displays = app.query("#conversation ResponseDisplay")
-            assert len(response_displays) == 1
+            streaming_widgets = app.query("#conversation StreamingText")
+            assert len(streaming_widgets) == 1
+
+    @patch("src.tui.app.create_async_client")
+    @patch("src.tui.app.AsyncAgent")
+    async def test_app_processes_streaming_events(
+        self, mock_agent_class, mock_create_async_client
+    ):
+        """Test that the app processes AgentEvent stream and updates StreamingText."""
+        # Mock async client and async agent
+        mock_client = Mock()
+        mock_create_async_client.return_value = mock_client
+
+        # Create async generator for streaming events
+        async def mock_streaming_events(query):
+            yield AgentEvent(type="token", content="Hello")
+            yield AgentEvent(type="token", content=" world")
+            yield AgentEvent(type="token", content="!")
+
+        mock_agent = AsyncMock()
+        # Make run_streaming directly return the async generator
+        mock_agent.run_streaming = mock_streaming_events
+        mock_agent_class.return_value = mock_agent
+
+        app = ResearchAssistantApp()
+        async with app.run_test():
+            # Get input widget
+            input_widget = app.query_one("Input")
+
+            # Manually trigger input submission event
+            from textual.widgets import Input
+
+            event = Input.Submitted(input_widget, value="Test streaming")
+            await app.on_input_submitted(event)
+
+            # Verify StreamingText widget was mounted
+            streaming_widgets = app.query("#conversation StreamingText")
+            assert len(streaming_widgets) > 0
+
+            # Verify the streaming widget received the tokens
+            streaming_widget = streaming_widgets[0]
+            rendered = str(streaming_widget.render())
+            assert "Hello world!" in rendered
