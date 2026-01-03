@@ -92,9 +92,155 @@ None - GROUP 1 was purely documentation and dependency setup.
 **Next Steps**:
 GROUP 2 will create the basic Textual TUI shell (no streaming yet) with synchronous agent integration.
 
-### GROUP 2: Basic TUI Shell
+### GROUP 2: Basic TUI Shell (No Streaming) ✅
 
-(To be filled in during implementation)
+**What We Built**:
+Created a minimal Textual TUI application that displays agent responses synchronously (no streaming yet). Implemented CLI argument parsing to support both TUI and REPL modes, preserving backward compatibility.
+
+**Completed Tasks**:
+- [x] Test: App renders with header, input, conversation area (tests/tui/test_app.py)
+- [x] Implement: ResearchAssistantApp class with basic layout (src/tui/app.py)
+- [x] Test: QueryDisplay and ResponseDisplay widgets (tests/tui/test_widgets.py)
+- [x] Implement: Custom widgets for displaying conversation (src/tui/widgets.py)
+- [x] Test: CLI argument parsing with --tui/--repl flags (tests/test_main.py)
+- [x] Implement: parse_args(), run_tui(), run_repl() functions (src/main.py)
+- [x] Test: Input submission triggers agent.run() (tests/tui/test_app.py)
+- [x] Implement: on_input_submitted() event handler (src/tui/app.py)
+- [x] Manual verification: Tested live TUI with agent interaction
+
+**Key Decisions**:
+
+1. **Circular Import Resolution**: Created src/client.py to break circular dependency
+   - **Problem**: src/tui/app.py needed create_client() from src/main.py, but src/main.py imports ResearchAssistantApp from src/tui/app.py
+   - **Solution**: Extracted create_client() to new src/client.py module
+   - **Impact**: Clean separation of concerns, easier testing
+
+2. **Testing Strategy**: Direct event invocation instead of pilot simulation
+   - **Challenge**: pilot.press("enter") wasn't triggering Input.Submitted events in test mode
+   - **Solution**: Create Input.Submitted event manually and call on_input_submitted() directly
+   - **Benefit**: More reliable tests, explicit event flow
+
+3. **Widget Inheritance**: Extend textual.widgets.Static for simplicity
+   - **Choice**: QueryDisplay and ResponseDisplay inherit from Static widget
+   - **Rationale**: Simple text display, leverage Rich markup for styling
+   - **Trade-off**: Less customization vs faster implementation
+
+4. **Pytest-Asyncio Configuration**: Added asyncio_mode = "auto" to pyproject.toml
+   - **Reason**: Textual tests require async/await support
+   - **Setup**: Added pytest-asyncio>=0.25.2 dependency
+   - **Benefit**: Clean async test syntax without manual fixtures
+
+**Code Highlights**:
+
+```python
+# src/tui/app.py - Minimal Textual App
+class ResearchAssistantApp(App):
+    """Main TUI application for the research assistant."""
+
+    BINDINGS = [("q", "quit", "Quit")]
+
+    def __init__(self) -> None:
+        super().__init__()
+        client = create_client()
+        self.agent = Agent(client=client, max_iterations=DEFAULT_MAX_ITERATIONS)
+
+    def compose(self) -> ComposeResult:
+        """Create child widgets for the app."""
+        yield Header()
+        yield ScrollableContainer(id="conversation")
+        yield Input(placeholder="Type your question...")
+        yield Footer()
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        """Handle user input submission."""
+        query = event.value
+        if not query.strip():
+            return
+
+        # Clear input and display query
+        self.query_one(Input).value = ""
+        conversation = self.query_one("#conversation")
+        conversation.mount(QueryDisplay(query))
+
+        # Run agent and display response
+        response = self.agent.run(query)
+        conversation.mount(ResponseDisplay(response))
+```
+
+```python
+# src/tui/widgets.py - Custom Widgets with Rich Markup
+class QueryDisplay(Static):
+    """Widget to display user queries."""
+    def __init__(self, query: str) -> None:
+        super().__init__(f"[bold cyan]You:[/bold cyan] {query}")
+
+class ResponseDisplay(Static):
+    """Widget to display agent responses."""
+    def __init__(self, response: str) -> None:
+        super().__init__(f"[bold green]Agent:[/bold green] {response}")
+```
+
+```python
+# src/main.py - CLI Argument Parsing
+def parse_args(args: list[str] | None = None) -> argparse.Namespace:
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Research Assistant - Multi-agent AI system"
+    )
+    parser.add_argument("--tui", action="store_const", const="tui", dest="mode",
+                        help="Launch the Textual TUI interface (default)")
+    parser.add_argument("--repl", action="store_const", const="repl", dest="mode",
+                        help="Launch the classic REPL interface")
+    parser.set_defaults(mode="tui")
+    return parser.parse_args(args)
+
+def main() -> None:
+    """Main entry point - parse arguments and launch appropriate interface."""
+    args = parse_args()
+    if args.mode == "repl":
+        run_repl()
+    else:
+        run_tui()
+```
+
+**Challenges Encountered**:
+
+1. **Circular Import Between main.py and app.py**
+   - **Symptom**: `ImportError: cannot import name 'ResearchAssistantApp' from partially initialized module`
+   - **Root Cause**: main.py → tui.app → main.create_client() → main.py
+   - **Solution**: Extracted create_client() to new client.py module
+   - **Learning**: Keep module dependencies acyclic; extract shared utilities early
+
+2. **Mock Patching Location**
+   - **Issue**: `@patch("src.client.create_client")` didn't work, mocks weren't applied
+   - **Fix**: Changed to `@patch("src.tui.app.create_client")` (where it's imported)
+   - **Learning**: Patch where functions are used, not where they're defined
+
+3. **Textual Event Simulation in Tests**
+   - **Issue**: `await pilot.press("enter")` didn't trigger on_input_submitted()
+   - **Fix**: Created Input.Submitted event manually: `event = Input.Submitted(input_widget, value="query")`
+   - **Learning**: Direct event invocation more reliable for unit tests; pilot better for integration tests
+
+**Testing Insights**:
+
+1. **Test Structure**: Mirrored src/ structure in tests/ (tests/tui/ for src/tui/)
+2. **Mock Strategy**: Patched create_client() and Agent class to avoid API calls
+3. **Coverage**: All 8 checklist items have corresponding tests (5 test files created)
+4. **Test Count**: Added 7 new tests across test_app.py, test_widgets.py, test_main.py
+5. **Assertion Style**: Verified both behavior (mock calls) and state (widget presence)
+
+**Commits**:
+- `82719b4`: test: add test for basic TUI app layout
+- `f4a8b6a`: feat: create basic TUI app with header, input, and conversation area
+- `50c0a6f`: test: add tests for QueryDisplay and ResponseDisplay widgets
+- `eee33cb`: feat: create QueryDisplay and ResponseDisplay widgets
+- `a464d19`: test: add tests for CLI argument parsing and mode selection
+- `50b146a`: feat: add CLI argument parsing with --tui and --repl modes
+- `12ec6dd`: test: add test for input submission and agent interaction
+- `eb0d4bd`: feat: implement input submission handler with agent integration
+
+**Next Steps**:
+GROUP 3 will create AsyncAgent foundation (async/await without streaming yet) to prepare for GROUP 4's token streaming.
 
 ### GROUP 3: Async Agent Foundation
 

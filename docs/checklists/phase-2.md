@@ -14,17 +14,17 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [x] Run `uv sync` to install new dependencies
 - [x] Verify dependencies installed successfully
 
-## GROUP 2: Basic TUI Shell (No Streaming)
-- [ ] Test: App renders with header, input, conversation area
-- [ ] Implement: Create src/tui/app.py with ResearchAssistantApp class
-- [ ] Test: QueryDisplay renders user query
-- [ ] Implement: Create src/tui/widgets.py with QueryDisplay, ResponseDisplay
-- [ ] Test: `--tui` flag launches TUI, `--repl` launches REPL
-- [ ] Implement: Modify src/main.py with argparse and run_tui()/run_repl() functions
-- [ ] Test: Input submission calls agent.run() and displays result
-- [ ] Implement: Add on_input_submitted() handler in app.py
-- [ ] Manual verification: Run `uv run python src/main.py --tui` and test query
-- [ ] Update learning log with GROUP 2 progress
+## GROUP 2: Basic TUI Shell (No Streaming) ✅
+- [x] Test: App renders with header, input, conversation area
+- [x] Implement: Create src/tui/app.py with ResearchAssistantApp class
+- [x] Test: QueryDisplay renders user query
+- [x] Implement: Create src/tui/widgets.py with QueryDisplay, ResponseDisplay
+- [x] Test: `--tui` flag launches TUI, `--repl` launches REPL
+- [x] Implement: Modify src/main.py with argparse and run_tui()/run_repl() functions
+- [x] Test: Input submission calls agent.run() and displays result
+- [x] Implement: Add on_input_submitted() handler in app.py
+- [x] Manual verification: Run `uv run python src/main.py --tui` and test query
+- [x] Update learning log with GROUP 2 progress
 
 ## GROUP 3: Async Agent Foundation
 - [ ] Test: AsyncAgent initializes with same params as Agent
