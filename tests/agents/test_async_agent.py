@@ -84,3 +84,67 @@ async def test_async_agent_run_streaming_yields_agent_events():
     assert "Hello" in token_contents
     assert " world" in token_contents
     assert "!" in token_contents
+
+
+@pytest.mark.asyncio
+async def test_async_agent_streaming_yields_observation_event():
+    """AsyncAgent.run_streaming() yields observation after tool execution."""
+    mock_client = AsyncMock()
+
+    # Mock streaming response with Thought and Action
+    async def mock_stream_with_action():
+        """Async generator that yields action."""
+        yield Mock(choices=[Mock(delta=Mock(content="Thought: I should search\n"))])
+        yield Mock(choices=[Mock(delta=Mock(content="Action: search_web: test"))])
+
+    # Mock the streaming response
+    mock_client.chat.completions.create.return_value = mock_stream_with_action()
+
+    agent = AsyncAgent(client=mock_client, max_iterations=3)
+
+    # Collect events from streaming
+    events = []
+    async for event in agent.run_streaming("Test query"):
+        events.append(event)
+
+    # Verify we received observation event
+    observation_events = [e for e in events if e.type == "observation"]
+    assert len(observation_events) > 0, "Should yield observation event"
+
+    # Verify observation content
+    obs_event = observation_events[0]
+    assert "Observation:" in obs_event.content
+    assert "MOCK SEARCH RESULTS" in obs_event.content
+
+
+@pytest.mark.asyncio
+async def test_async_agent_streaming_adds_newline_before_observation():
+    """AsyncAgent.run_streaming() adds newline before observation."""
+    mock_client = AsyncMock()
+
+    # Mock streaming response with Thought and Action
+    async def mock_stream_with_action():
+        """Async generator that yields action."""
+        yield Mock(choices=[Mock(delta=Mock(content="Thought: Search\n"))])
+        yield Mock(choices=[Mock(delta=Mock(content="Action: search_web: test"))])
+
+    # Mock the streaming response
+    mock_client.chat.completions.create.return_value = mock_stream_with_action()
+
+    agent = AsyncAgent(client=mock_client, max_iterations=3)
+
+    # Collect events from streaming
+    events = []
+    async for event in agent.run_streaming("Test query"):
+        events.append(event)
+
+    # Find the token event just before observation
+    event_types = [e.type for e in events]
+
+    # Should have pattern: [...tokens..., "token" with "\n", "observation"]
+    # The last token before observation should end with or be a newline
+    obs_index = event_types.index("observation")
+    token_before_obs = events[obs_index - 1]
+
+    assert token_before_obs.type == "token"
+    assert "\n" in token_before_obs.content or token_before_obs.content == "\n"
