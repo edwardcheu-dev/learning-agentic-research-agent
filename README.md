@@ -166,7 +166,7 @@ User → TUI (Textual) → AsyncAgent (ReAct Loop) → Tools → [Web Search | F
 
 - **Language**: Python 3.12+
 - **Package Manager**: [uv](https://github.com/astral-sh/uv) (NOT pip)
-- **LLM**: OpenAI API via POE (gpt-4.1-mini for balance of speed/cost/quality)
+- **LLM**: OpenAI API via POE (gpt-5.1 for most up-to-date ReAct compliance)
 - **TUI Framework**: Textual 1.0+ with Rich (Phase 2, in progress)
 - **Async Support**: AsyncOpenAI client, pytest-asyncio (Phase 2)
 - **Testing**: pytest with comprehensive mocking (37 tests: 20 Phase 1, 17 Phase 2)
@@ -186,13 +186,27 @@ just check               # Run all quality checks (before commit)
 just --list              # Show all available commands
 ```
 
-**Post-milestone workflow** (capture insights and improvements):
+**Development workflow commands**:
+
+**Phase execution** (start and resume phases):
+```bash
+/start-phase N            # Begin new phase with exploration and planning
+/resume-phase N           # Resume incomplete phase (detects pending verifications)
+```
+
+**Post-milestone reflection** (capture insights and improvements):
 ```bash
 /codebase-qa              # Interactive Q&A about implementation
-/update-learnings         # Auto-capture architectural insights
-/propose-enhancements     # Auto-extract improvement ideas
+/update-learnings         # Auto-capture architectural insights to learning logs
+/propose-enhancements     # Auto-extract improvement ideas to docs/enhancements/
 ```
-See [.claude/commands/](.claude/commands/) for command details.
+
+**Enhancement lifecycle** (promote ideas to MVP):
+```bash
+/promote-enhancements     # Convert P0/P1 enhancements to new MVP phases
+```
+
+See [.claude/commands/](.claude/commands/) for detailed command documentation.
 
 **For complete workflow**, see [CONTRIBUTING.md](CONTRIBUTING.md):
 - [Pre-commit hooks](CONTRIBUTING.md#pre-commit-hooks) - Auto-formatting, type checking, tests
