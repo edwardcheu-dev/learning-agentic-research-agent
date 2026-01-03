@@ -1,6 +1,5 @@
 """Tests for TUI widgets."""
 
-import pytest
 from textual.app import App
 
 from src.tui.widgets import QueryDisplay, ResponseDisplay
@@ -23,7 +22,9 @@ class TestQueryDisplay:
             query_display = app.query_one(QueryDisplay)
             assert query_display is not None
             # Check that the query text is in the widget's rendered output
-            assert "What is machine learning?" in query_display.renderable
+            # Static widget stores content in renderable which is a Rich renderable
+            rendered = str(query_display.render())
+            assert "What is machine learning?" in rendered
 
 
 class TestResponseDisplay:
@@ -43,4 +44,6 @@ class TestResponseDisplay:
             response_display = app.query_one(ResponseDisplay)
             assert response_display is not None
             # Check that the response text is in the widget's rendered output
-            assert "Machine learning is a branch of AI..." in response_display.renderable
+            # Static widget stores content in renderable which is a Rich renderable
+            rendered = str(response_display.render())
+            assert "Machine learning is a branch of AI..." in rendered
