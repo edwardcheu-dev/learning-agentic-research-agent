@@ -41,10 +41,10 @@ For each implementation phase:
 
 1. **EXPLORE**: Use subagents to investigate relevant patterns, docs, or existing code
 2. **PLAN**: Create a checklist in `docs/checklists/phase-N.md` before any code
-3. **IMPLEMENT**: For each checklist item, follow TDD:
-   - Write test first, commit with prefix `test:`
-   - Write minimal implementation, commit with prefix `feat:`
-   - Refactor if needed, commit with prefix `refactor:`
+3. **IMPLEMENT**: For each checklist item, follow TDD using helper commands:
+   - Write test first: `just test-commit "add test for X"`
+   - Write minimal implementation: `just feat-commit "implement X"`
+   - Refactor if needed: `just refactor-commit "refactor X"`
 4. **DOCUMENT**: After each logical group of commits:
    - Append summary to `docs/learning-logs/phase-N-log.md`
    - Update `CLAUDE.md` with patterns learned
@@ -86,6 +86,88 @@ git commit -m "docs: document Phase 1 tool system design"
 ```
 
 Pre-commit hooks will reject commits without a valid prefix.
+
+## TDD Workflow with Helper Commands
+
+To support Test-Driven Development while maintaining code quality, use these Justfile helper commands:
+
+### Writing Failing Tests (TDD Step 1)
+
+```bash
+# Write your failing test, then:
+just test-commit "add test for streaming events"
+```
+
+**What it does**:
+- Runs `just check-basic` (formatting, linting, type checking)
+- Stages all changes with `git add .`
+- Commits with `SKIP=pytest` to allow failing tests
+- Automatically prefixes message with `test:`
+
+### Implementing Features (TDD Step 2)
+
+```bash
+# Write your implementation, then:
+just feat-commit "implement streaming event loop"
+```
+
+**What it does**:
+- Runs `just check` (ALL quality checks including pytest)
+- Stages all changes with `git add .`
+- Commits only if ALL tests pass
+- Automatically prefixes message with `feat:`
+
+### Complete TDD Example
+
+```bash
+# Step 1: Write failing test
+just test-commit "add test for AsyncAgent.run_streaming()"
+
+# Step 2: Implement feature
+just feat-commit "implement AsyncAgent.run_streaming() method"
+
+# Step 3 (optional): Refactor
+just refactor-commit "extract token parsing to helper method"
+```
+
+### Available Helper Commands
+
+| Command | Runs pytest? | Use Case |
+|---------|-------------|----------|
+| `just test-commit "msg"` | ❌ No | Committing failing tests (TDD step 1) |
+| `just feat-commit "msg"` | ✅ Yes | Committing working implementation |
+| `just fix-commit "msg"` | ✅ Yes | Committing bug fixes |
+| `just refactor-commit "msg"` | ✅ Yes | Committing refactors |
+| `just docs-commit "msg"` | ❌ No | Committing documentation |
+| `just chore-commit "msg"` | ❌ No | Committing config/tooling changes |
+
+### Why This Approach?
+
+**Problem**: TDD requires committing failing tests, but pytest pre-commit hook blocks failing tests.
+
+**Solution**: Helper commands that:
+1. Make TDD workflow explicit and easy to follow
+2. Ensure formatting/linting still runs on test commits
+3. Guarantee implementations pass all tests before committing
+4. Prevent accidental commits of failing implementations
+
+### Fallback: Manual Commits
+
+If you prefer manual control:
+
+```bash
+# Commit failing test (TDD)
+just check-basic              # Check formatting/linting/types only
+git add .
+SKIP=pytest git commit -m "test: your message"
+
+# Commit implementation
+just check                    # Full checks including pytest
+git add .
+git commit -m "feat: your message"
+```
+
+**Note**: Always run `just check` before committing implementations to avoid pre-commit hook failures and re-commits.
 
 ## Setting Up Your Development Environment
 

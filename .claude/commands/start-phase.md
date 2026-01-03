@@ -33,12 +33,12 @@ Wait for approval before proceeding.
 
 ### 3. IMPLEMENT
 
-For each checklist item, follow TDD cycle from [CONTRIBUTING.md#commit-message-format](../CONTRIBUTING.md#commit-message-format):
+For each checklist item, follow TDD cycle from [CONTRIBUTING.md#tdd-workflow-with-helper-commands](../CONTRIBUTING.md#tdd-workflow-with-helper-commands):
 
 1. Write test first, run to confirm failure
-2. Commit: `git commit -m "test: [description]"`
+2. Commit: `just test-commit "[description]"`
 3. Write minimal code to pass test
-4. Commit: `git commit -m "feat: [description]"`
+4. Commit: `just feat-commit "[description]"`
 
 **After EACH completion**:
 - Check off item in `docs/checklists/phase-$ARGUMENTS.md`
@@ -60,8 +60,7 @@ For each checklist item, follow TDD cycle from [CONTRIBUTING.md#commit-message-f
 2. Update checklist to mark GROUP complete
 3. Commit both:
    ```bash
-   git add docs/checklists/phase-$ARGUMENTS.md docs/learning-logs/phase-$ARGUMENTS-log.md
-   git commit -m "docs: update checklist and learning log after GROUP X"
+   just docs-commit "update checklist and learning log after GROUP X"
    ```
 4. Provide standardized summary (see template below)
 5. Ask user if they want to `/clear` before next GROUP
@@ -70,7 +69,7 @@ For each checklist item, follow TDD cycle from [CONTRIBUTING.md#commit-message-f
 1. Complete Phase Summary in `docs/learning-logs/phase-$ARGUMENTS-log.md`
 2. Update `MASTER_LOG.md` with phase-specific implementation details
 3. Update `CLAUDE.md` Development Patterns ONLY if general, reusable patterns discovered
-4. Commit: `git commit -m "docs: complete Phase $ARGUMENTS documentation"`
+4. Commit: `just docs-commit "complete Phase $ARGUMENTS documentation"`
 
 See [CONTRIBUTING.md#documentation-standards](../CONTRIBUTING.md#documentation-standards) for full requirements.
 

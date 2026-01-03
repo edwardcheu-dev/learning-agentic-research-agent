@@ -2,8 +2,6 @@
 
 from unittest.mock import Mock, patch
 
-import pytest
-
 from src.main import parse_args, run_repl, run_tui
 
 

@@ -138,7 +138,11 @@ High-priority enhancements (P0/P1) may be promoted into the MVP roadmap. See [do
 
 ## Development Commands
 
-All commands use uv. Never use pip directly.
+**CRITICAL**: For detailed development workflow, commit conventions, and TDD patterns, see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+
+All commands use `uv`. Never use `pip` directly.
+
+### Quick Reference
 
 **Setup (first time)**:
 ```bash
@@ -147,22 +151,35 @@ uv sync                      # Install dependencies
 just setup                   # Setup pre-commit hooks
 ```
 
-**Common development commands**:
+**TDD Workflow (RECOMMENDED)**:
 ```bash
-just check                   # Run all quality checks (recommended before commit)
-just test                    # Run tests
-just run                     # Run the agent REPL
+# Step 1: Write failing test
+just test-commit "add test for feature X"
+
+# Step 2: Implement feature
+just feat-commit "implement feature X"
+
+# See full TDD workflow in CONTRIBUTING.md
+```
+
+**Quality Checks**:
+```bash
+just check                   # Run all quality checks (before feat/fix commits)
+just check-basic             # Run formatting/linting/types only (before test commits)
+just test                    # Run tests only
 just --list                  # Show all available commands
 ```
 
-**Manual commands** (if not using just):
+**Running the Application**:
 ```bash
-uv run python src/main.py    # Run the agent
-uv run pytest                # Run tests
-uv run pytest --cov=src      # With coverage
+just run                     # Launch TUI (default)
+uv run python src/main.py --repl   # Launch REPL
 ```
 
-**For complete development workflow**, see [CONTRIBUTING.md#development-workflow](CONTRIBUTING.md#development-workflow)
+**For complete workflow details**, see:
+- [CONTRIBUTING.md#development-workflow](CONTRIBUTING.md#development-workflow) - Phase workflow, TDD cycle
+- [CONTRIBUTING.md#tdd-workflow-with-helper-commands](CONTRIBUTING.md#tdd-workflow-with-helper-commands) - Helper command usage
+- [CONTRIBUTING.md#commit-message-format](CONTRIBUTING.md#commit-message-format) - Commit prefixes
 
 ## Key Patterns to Follow
 
@@ -213,6 +230,33 @@ echo $POE_API_KEY
 - [Integration Test Safety](CONTRIBUTING.md#integration-test-safety) - 4-layer protection against API costs
 - [Testing Patterns](CONTRIBUTING.md#testing-patterns-for-llm-code) - Mocking LLM clients
 - [Documentation Standards](CONTRIBUTING.md#documentation-standards) - Docstrings, learning logs
+
+### Development Workflow for AI Assistants
+
+**CRITICAL**: Always follow the workflow documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+**TDD Cycle Pattern**:
+1. Write failing test: `just test-commit "add test for X"`
+2. Implement feature: `just feat-commit "implement X"`
+3. Never use `git add && git commit` directly - always use helper commands
+
+**Common Mistakes to Avoid**:
+- ❌ DON'T: `git add . && git commit -m "feat: ..."`  (skips quality checks)
+- ✅ DO: `just feat-commit "..."`  (runs checks first)
+- ❌ DON'T: Commit test and implementation together
+- ✅ DO: Separate commits using `test-commit` then `feat-commit`
+
+**Before Any Commit**:
+- Use `just test-commit` for failing tests (TDD step 1)
+- Use `just feat-commit` for implementations (TDD step 2)
+- Use `just fix-commit` for bug fixes
+- Use `just docs-commit` for documentation
+
+**Why This Matters**:
+- Prevents pre-commit hook failures and re-commits
+- Enforces TDD workflow (separate test/implementation commits)
+- Ensures code quality without manual `just check` calls
+- Makes git history clean and educational
 
 ## Development Patterns
 

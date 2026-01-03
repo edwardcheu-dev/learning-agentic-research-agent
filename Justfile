@@ -50,6 +50,72 @@ test-integration:
 pre-commit:
     uv run pre-commit run --all-files
 
+# Run basic checks only (formatting, linting, type checking - NO pytest)
+check-basic:
+    @echo "Running basic checks (formatting, linting, type checking)..."
+    uv run ruff check . --fix
+    uv run ruff format .
+    uv run pyright
+    uv run pre-commit run trailing-whitespace --all-files
+    uv run pre-commit run end-of-file-fixer --all-files
+    @echo "✅ Basic checks passed!"
+
+# TDD Workflow: Commit a failing test (skips pytest to allow TDD)
+test-commit message:
+    just check-basic
+    git add .
+    SKIP=pytest git commit -m "test: {{message}}"
+
+# TDD Workflow: Commit implementation (runs ALL checks including pytest)
+feat-commit message:
+    just check
+    git add .
+    git commit -m "feat: {{message}}"
+
+# Commit bug fix (runs ALL checks including pytest)
+fix-commit message:
+    just check
+    git add .
+    git commit -m "fix: {{message}}"
+
+# Commit refactoring (runs ALL checks including pytest)
+refactor-commit message:
+    just check
+    git add .
+    git commit -m "refactor: {{message}}"
+
+# Commit documentation (skips pytest)
+docs-commit message:
+    just check-basic
+    git add .
+    SKIP=pytest git commit -m "docs: {{message}}"
+
+# Commit chore/config changes (skips pytest)
+chore-commit message:
+    just check-basic
+    git add .
+    SKIP=pytest git commit -m "chore: {{message}}"
+
+# Show TDD workflow example
+tdd-help:
+    @echo "════════════════════════════════════════════════════════════"
+    @echo "  TDD Workflow with Helper Commands"
+    @echo "════════════════════════════════════════════════════════════"
+    @echo ""
+    @echo "1️⃣  Write failing test:"
+    @echo "    just test-commit 'add test for streaming events'"
+    @echo ""
+    @echo "2️⃣  Implement feature:"
+    @echo "    just feat-commit 'implement streaming event loop'"
+    @echo ""
+    @echo "3️⃣  Refactor (optional):"
+    @echo "    just refactor-commit 'extract helper method'"
+    @echo ""
+    @echo "════════════════════════════════════════════════════════════"
+    @echo "✨ This ensures tests can be committed while failing (TDD)"
+    @echo "   while implementations MUST pass all tests before commit."
+    @echo "════════════════════════════════════════════════════════════"
+
 # Run the agent REPL
 run:
     uv run python src/main.py

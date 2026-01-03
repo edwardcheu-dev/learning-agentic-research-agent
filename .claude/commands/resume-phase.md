@@ -33,12 +33,12 @@ I'll now work on: [next unchecked item description]
 
 ## Step 3: Continue Implementation
 
-Follow TDD workflow from [CONTRIBUTING.md#development-workflow](../CONTRIBUTING.md#development-workflow):
+Follow TDD workflow from [CONTRIBUTING.md#tdd-workflow-with-helper-commands](../CONTRIBUTING.md#tdd-workflow-with-helper-commands):
 
 1. Write test first, run to confirm failure
-2. Commit: `git commit -m "test: [description]"`
+2. Commit: `just test-commit "[description]"`
 3. Write minimal implementation to pass
-4. Commit: `git commit -m "feat: [description]"`
+4. Commit: `just feat-commit "[description]"`
 
 **CRITICAL After Each Item**:
 - Check off item in `docs/checklists/phase-$ARGUMENTS.md`
@@ -52,7 +52,7 @@ Follow TDD workflow from [CONTRIBUTING.md#development-workflow](../CONTRIBUTING.
 **DOCUMENT After Each GROUP**:
 - Append summary to `docs/learning-logs/phase-$ARGUMENTS-log.md`
 - Include: what was built, key decisions, code snippets, sample output
-- Commit: `git add docs/... && git commit -m "docs: update checklist and learning log after GROUP X"`
+- Commit: `just docs-commit "update checklist and learning log after GROUP X"`
 - Provide standardized summary (see [start-phase.md](start-phase.md))
 - Ask user if they want to `/clear` before next GROUP
 
