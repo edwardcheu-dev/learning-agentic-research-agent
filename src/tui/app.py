@@ -4,7 +4,7 @@ from textual.app import App, ComposeResult
 from textual.containers import ScrollableContainer
 from textual.widgets import Footer, Header, Input
 
-from src.agents.agent import Agent
+from src.agents.async_agent import AsyncAgent
 from src.client import create_client
 from src.config import DEFAULT_MAX_ITERATIONS
 from src.tui.widgets import QueryDisplay, ResponseDisplay
@@ -25,11 +25,11 @@ class ResearchAssistantApp(App):
     ]
 
     def __init__(self) -> None:
-        """Initialize the TUI app with agent."""
+        """Initialize the TUI app with async agent."""
         super().__init__()
-        # Create OpenAI client and agent
+        # Create OpenAI client and async agent
         client = create_client()
-        self.agent = Agent(client=client, max_iterations=DEFAULT_MAX_ITERATIONS)
+        self.agent = AsyncAgent(client=client, max_iterations=DEFAULT_MAX_ITERATIONS)
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
@@ -38,8 +38,8 @@ class ResearchAssistantApp(App):
         yield Input(placeholder="Type your question...")
         yield Footer()
 
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        """Handle user input submission.
+    async def on_input_submitted(self, event: Input.Submitted) -> None:
+        """Handle user input submission (async).
 
         Args:
             event: Input submission event containing the user's query.
@@ -58,6 +58,6 @@ class ResearchAssistantApp(App):
         # Display user query
         conversation.mount(QueryDisplay(query))
 
-        # Run agent and display response
-        response = self.agent.run(query)
+        # Run agent and display response (async)
+        response = await self.agent.run(query)
         conversation.mount(ResponseDisplay(response))
