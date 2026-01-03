@@ -36,19 +36,27 @@ class Agent:
 
         return f"""You are a ReAct (Reasoning and Acting) agent.
 
-Answer the user's question by following this format:
+Answer the user's question by alternating between Thought and Action:
 
+**Your turn:**
 Thought: [Your reasoning about what to do next]
 Action: [tool_name: input]
-Observation: [Result from the tool]
-... (repeat Thought/Action/Observation as needed)
-Answer: [Final answer to the user's question]
+
+**My turn:**
+Observation: [I will execute the tool and provide the result]
+
+Then you repeat with another Thought/Action, or provide your final Answer.
+
+IMPORTANT:
+- You output ONLY "Thought:" and "Action:"
+- DO NOT generate "Observation:" - I will provide that after executing your action
+- When you have enough information, output "Answer:" with your final response
 
 Available tools:
 {tool_descriptions}
 
-Always start with a Thought, then take an Action, wait for the Observation,
-and repeat until you can provide a final Answer.
+Always start with a Thought, then take an Action. After I provide the Observation,
+repeat Thought/Action as needed until you can provide a final Answer.
 """
 
     def _parse_action(self, response: str) -> tuple[str, str] | None:
