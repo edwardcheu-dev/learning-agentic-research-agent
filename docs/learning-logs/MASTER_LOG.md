@@ -105,6 +105,60 @@ Two ways to exit the ReAct loop:
 1. **Max iterations reached**: Safety limit prevents infinite loops (default: 3)
 2. **Final answer provided**: When `_parse_action()` returns `None` (no "Action:" found in response)
 
+**How the ReAct Loop Actually Works**:
+
+Understanding the orchestration reveals why the implementation is so simple yet powerful:
+
+**The "Heavy Lifting" is Simple Orchestration**:
+- The `run()` function is just ~30 lines of loop logic
+- The intelligence comes from:
+  - **Prompt engineering**: Conditioning the LLM to follow Thought/Action/Answer format
+  - **Tool execution**: Bridging LLM reasoning to real-world actions
+  - **Message accumulation**: Giving LLM context of what already happened
+
+**The "Repeat" is External, Not Internal**:
+- The system prompt says "repeat Thought/Action/Observation as needed"
+- But the LLM does NOT loop internally
+- The Python `for` loop handles repetition
+- Each LLM call is **one-shot**: sees messages → outputs Thought/Action (or Answer)
+
+**Short-Term Memory = `messages` Array**:
+- Each iteration appends to the conversation history:
+  ```python
+  messages = [
+    {"role": "system", "content": "You are a ReAct agent..."},
+    {"role": "user", "content": "Research X"},
+    {"role": "assistant", "content": "Thought: ...\nAction: search_web: X"},
+    {"role": "user", "content": "Observation: [results]"},  # ← Memory!
+    # ... grows each iteration
+  ]
+  ```
+- Each LLM call sees the **full conversation history**
+- The API is **stateless** - no hidden state beyond `messages`
+
+**Why "Single Action" Parsing is Correct**:
+- The LLM is instructed to output ONE Thought/Action pair per response
+- The loop orchestrates the action-observation cycle externally
+- Taking the first action found is defensive design (handles malformed responses)
+- If the LLM outputs multiple actions, only the first executes (prevents ambiguity)
+
+**Tool Flexibility**:
+- A tool is just a Python function - it can do anything:
+  - Web search (API calls)
+  - File I/O (read/write notes)
+  - Database queries (SQLite)
+  - Call another LLM (nested agents for Phase 4 A2A!)
+  - Execute shell commands (with appropriate safety)
+
+**Known Limitation - Context Window**:
+- The `messages` array grows unbounded
+- Eventually hits token limits (8K, 128K depending on model)
+- Costs more per iteration (pay per token)
+- LLM may lose focus on early context
+- **Future phases address this**:
+  - Phase 2: SQLite memory for conversation persistence
+  - Phase 3: RAG for offloading long-term knowledge
+
 ### Code Walkthrough
 
 **Agent Initialization**:

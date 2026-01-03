@@ -113,6 +113,18 @@ Implement document chunking, embedding generation, vector storage with ChromaDB,
 
 Split into specialized agents communicating via A2A protocol. Orchestrator coordinates Researcher, Writer, and Fact-Checker.
 
+## Enhancement Tracking
+
+Beyond the 4 MVP phases, we track post-MVP improvements in `docs/enhancements/`:
+
+- **[schema-validation.md](docs/enhancements/schema-validation.md)**: Pydantic models, Instructor, structured outputs
+- **[agent-robustness.md](docs/enhancements/agent-robustness.md)**: Prompt optimization, DSPy, error recovery
+- **[observability.md](docs/enhancements/observability.md)**: MLflow tracing, structured logging, cost tracking
+
+Enhancements use **priority labels** (P0/P1/P2) and **status labels** (Idea/Planned/In Progress/Done).
+
+High-priority enhancements (P0/P1) may be promoted into the MVP roadmap. See [docs/enhancements/README.md](docs/enhancements/README.md) for details.
+
 ## Development Commands
 
 All commands use uv. Never use pip directly.
@@ -176,6 +188,7 @@ echo $POE_API_KEY
 - Progress tracking: `docs/checklists/phase-N.md`
 - Learning narratives: `docs/learning-logs/phase-N-log.md`
 - Master tutorial: `docs/learning-logs/MASTER_LOG.md`
+- Enhancement tracking: `docs/enhancements/` (post-MVP improvements)
 
 **For workflow details**, see [CONTRIBUTING.md](CONTRIBUTING.md):
 - [Development Workflow](CONTRIBUTING.md#development-workflow) - TDD cycle, commit prefixes
