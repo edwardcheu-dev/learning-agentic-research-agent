@@ -27,9 +27,9 @@ Examples:
 import os
 
 # Model configuration
-MODEL_NAME: str = "gpt-4.1-mini"
+MODEL_NAME: str = "gpt-5.1"
 """The OpenAI model to use for agent reasoning (Poe API identifier).
-Using GPT-4.1 Mini for optimal balance of speed (0.90s), cost, and ReAct compliance."""
+Using GPT-5.1 for most up-to-date ReAct compliance model."""
 
 DEFAULT_MAX_ITERATIONS: int = 3
 """Default maximum number of ReAct loop iterations."""
