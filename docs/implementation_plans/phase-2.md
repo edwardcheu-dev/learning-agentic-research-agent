@@ -99,6 +99,8 @@ User Input → AsyncAgent.run_streaming(query)
 
 **Manual Verification**: `uv run python src/main.py --tui`
 
+**Documentation**: Update learning log after GROUP 2
+
 ### GROUP 3: Async Agent Foundation
 
 **Goal**: Convert Agent to async (no streaming yet)
@@ -107,6 +109,8 @@ User Input → AsyncAgent.run_streaming(query)
 1. AsyncAgent class initialization
 2. Async run method (non-streaming)
 3. Update TUI to use async agent
+
+**Documentation**: Update learning log after GROUP 3
 
 ### GROUP 4: Streaming LLM Tokens
 
@@ -118,6 +122,8 @@ User Input → AsyncAgent.run_streaming(query)
 3. StreamingText widget
 4. Wire streaming to TUI
 
+**Documentation**: Update learning log after GROUP 4
+
 ### GROUP 5: ReAct Step Visualization
 
 **Goal**: Display Thought/Action/Observation as separate sections
@@ -128,6 +134,8 @@ User Input → AsyncAgent.run_streaming(query)
 3. Update AsyncAgent to emit structured events
 4. Event processing in TUI
 
+**Documentation**: Update learning log after GROUP 5
+
 ### GROUP 6: Progressive Disclosure
 
 **Goal**: Make sections collapsible
@@ -136,6 +144,8 @@ User Input → AsyncAgent.run_streaming(query)
 1. Collapsible wrapper
 2. Click handlers
 3. Default expanded state
+
+**Documentation**: Update learning log after GROUP 6
 
 ### GROUP 7: Keyboard Navigation & Polish
 
@@ -146,6 +156,8 @@ User Input → AsyncAgent.run_streaming(query)
 2. F2 log panel toggle
 3. Ctrl+L clear conversation
 4. CSS styling
+
+**Documentation**: Update learning log after GROUP 7
 
 ### GROUP 8: Documentation & Finalization
 
@@ -251,10 +263,64 @@ class AgentEvent:
     metadata: dict[str, Any] = field(default_factory=dict)
 ```
 
+## Context Management & /clear Workflow
+
+**Token Tracking**:
+- Monitor token usage throughout implementation
+- When >50% (100k tokens), suggest `/clear` before next GROUP
+- Current budget: 200k tokens per conversation
+
+**Before `/clear`**:
+1. Commit all work
+2. Update checklist with completed items
+3. Commit checklist: `git add docs/checklists/phase-2.md && git commit -m "docs: update checklist after GROUP X"`
+
+**After `/clear`**:
+- Use `/resume-phase 2` to continue with full context restored
+- Resume command will load checklist, implementation plan, and recent commits
+
+**After Each GROUP**:
+1. Update `docs/learning-logs/phase-2-log.md` with:
+   - What was built
+   - Key decisions made
+   - Code snippets with explanations
+   - Challenges encountered
+2. Commit both checklist and learning log:
+   ```bash
+   git add docs/checklists/phase-2.md docs/learning-logs/phase-2-log.md
+   git commit -m "docs: update checklist and learning log after GROUP X"
+   ```
+3. Provide standardized summary (see template below)
+4. Ask user if they want to `/clear` before next GROUP
+
+## Summary Template (After Each GROUP)
+
+```
+## Summary
+[Brief description of what was built in this GROUP]
+
+## How It Connects to the Bigger Picture
+- GROUP 1: [What's been completed] ✅
+- GROUP 2-X: [Previous groups] ✅
+- Current GROUP: [What was just finished] ✅
+- Next GROUP: [What's coming next]
+
+## Token Usage
+Currently at ~[X]k / 200k tokens ([Y]%) - [Good/Approaching limit/Suggest /clear]
+
+## Documentation Updates
+- Phase log updated: ✅
+- Checklist updated: ✅
+- [If final GROUP] MASTER_LOG.md: [Pending/Completed]
+- [If final GROUP] CLAUDE.md: [Updated / No general patterns to add]
+```
+
 ## Workflow Tips
 
 - Run tests after every change: `uv run pytest`
 - Commit atomically: One test, one implementation
-- Document as you go: Update learning log after major groups
+- Update checklist immediately after completing each item
+- Update learning log after each GROUP completion
 - Manual test each GROUP to verify TUI behavior
 - Test both `--tui` and `--repl` flags regularly
+- Monitor token usage and suggest `/clear` when >50%
