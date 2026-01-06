@@ -70,21 +70,31 @@ class ResearchAssistantApp(App):
         # Track streaming widget - only create it when needed for Answer
         streaming_widget = None
         answer_detected = False
+        accumulated_tokens = ""
 
         # Stream agent response token by token
         async for agent_event in self.agent.run_streaming(query):
             if agent_event.type == "token":
-                # Check if this token contains "Answer:" to detect final answer phase
-                if not answer_detected and "Answer:" in agent_event.content:
+                # Accumulate tokens to detect "Answer:" even if split across tokens
+                accumulated_tokens += agent_event.content
+
+                # Check if we've seen "Answer:" in accumulated text
+                if not answer_detected and "Answer:" in accumulated_tokens:
                     answer_detected = True
                     # Create and mount StreamingText widget at this point (after nodes)
                     streaming_widget = StreamingText()
                     conversation.mount(streaming_widget)
 
-                # Only append tokens if we're in the answer phase
-                if answer_detected and streaming_widget:
+                    # Append all previously accumulated tokens that are part of Answer
+                    answer_index = accumulated_tokens.find("Answer:")
+                    answer_portion = accumulated_tokens[answer_index:]
+                    streaming_widget.append_token(answer_portion)
+                elif answer_detected and streaming_widget:
+                    # Continue appending tokens after Answer is detected
                     streaming_widget.append_token(agent_event.content)
             elif agent_event.type == "thought":
+                # Clear accumulated tokens for this new iteration
+                accumulated_tokens = ""
                 # Create ThoughtNode for thought events
                 thought_node = ThoughtNode(agent_event.content, status="done")
                 conversation.mount(thought_node)
