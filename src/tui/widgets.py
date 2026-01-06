@@ -1,6 +1,10 @@
 """Custom widgets for the TUI."""
 
+from typing import Literal
+
 from textual.widgets import Static
+
+StatusType = Literal["pending", "running", "done"]
 
 
 class QueryDisplay(Static):
@@ -52,3 +56,37 @@ class StreamingText(Static):
         """
         self._content += token
         self.update(self._content)
+
+
+class ThoughtNode(Static):
+    """Widget to display agent reasoning steps with status indicators.
+
+    Shows the agent's thought process with visual status indicators
+    (pending, running, done) to track progress through the ReAct loop.
+    """
+
+    STATUS_SYMBOLS = {
+        "pending": "○",  # Hollow circle
+        "running": "●",  # Filled circle
+        "done": "✓",  # Checkmark
+    }
+
+    STATUS_COLORS = {
+        "pending": "dim",
+        "running": "yellow",
+        "done": "green",
+    }
+
+    def __init__(self, content: str, status: StatusType = "pending") -> None:
+        """Initialize ThoughtNode with content and status.
+
+        Args:
+            content: The thought content to display
+            status: The status indicator (pending, running, or done)
+        """
+        symbol = self.STATUS_SYMBOLS[status]
+        color = self.STATUS_COLORS[status]
+        formatted = f"[{color}]{symbol}[/{color}] [bold]Thought:[/bold] {content}"
+        super().__init__(formatted)
+        self._content_text = content
+        self._status = status
