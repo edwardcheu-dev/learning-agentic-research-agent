@@ -1,7 +1,7 @@
 # Personal Research & Notes Assistant
 
-> **For development workflow and standards**, see @CONTRIBUTING.md
-> **For public overview**, see @README.md
+> **For development workflow and standards**, see CONTRIBUTING.md
+> **For public overview**, see README.md
 
 ## Project Overview
 
@@ -52,7 +52,7 @@ response = client.chat.completions.create(
 )
 ```
 
-See @docs/reference/poe-api-troubleshooting.md for detailed guidance.
+See docs/reference/poe-api-troubleshooting.md for detailed guidance.
 
 ## Project Structure
 

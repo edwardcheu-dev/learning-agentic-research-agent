@@ -2,7 +2,7 @@
 
 from textual.app import App
 
-from src.tui.widgets import QueryDisplay, ResponseDisplay, StreamingText
+from src.tui.widgets import QueryDisplay, ResponseDisplay, StreamingText, ThoughtNode
 
 
 class TestQueryDisplay:
@@ -83,3 +83,62 @@ class TestStreamingText:
             streaming_text.append_token("!")
             rendered = str(streaming_text.render())
             assert "Hello world!" in rendered
+
+
+class TestThoughtNode:
+    """Test the ThoughtNode widget."""
+
+    async def test_thought_node_displays_content_and_status(self):
+        """Test that ThoughtNode displays content with a status indicator."""
+
+        class TestApp(App):
+            """Test app to host ThoughtNode."""
+
+            def compose(self):
+                yield ThoughtNode("I need to search for information", status="running")
+
+        app = TestApp()
+        async with app.run_test():
+            thought_node = app.query_one(ThoughtNode)
+            assert thought_node is not None
+
+            # Check that the thought content is displayed
+            rendered = str(thought_node.render())
+            assert "I need to search for information" in rendered
+
+            # Check that status indicator is present (running state)
+            assert "running" in rendered.lower() or "⋯" in rendered or "●" in rendered
+
+    async def test_thought_node_status_pending(self):
+        """Test that ThoughtNode shows pending status indicator."""
+
+        class TestApp(App):
+            """Test app to host ThoughtNode."""
+
+            def compose(self):
+                yield ThoughtNode("Waiting to process", status="pending")
+
+        app = TestApp()
+        async with app.run_test():
+            thought_node = app.query_one(ThoughtNode)
+            rendered = str(thought_node.render())
+
+            # Check for pending indicator
+            assert "pending" in rendered.lower() or "○" in rendered or "⊙" in rendered
+
+    async def test_thought_node_status_done(self):
+        """Test that ThoughtNode shows done status indicator."""
+
+        class TestApp(App):
+            """Test app to host ThoughtNode."""
+
+            def compose(self):
+                yield ThoughtNode("Analysis complete", status="done")
+
+        app = TestApp()
+        async with app.run_test():
+            thought_node = app.query_one(ThoughtNode)
+            rendered = str(thought_node.render())
+
+            # Check for done indicator
+            assert "done" in rendered.lower() or "✓" in rendered or "●" in rendered
