@@ -1,3 +1,7 @@
+---
+description: Interactive Q&A session about the Research Assistant codebase. (project)
+---
+
 Interactive Q&A session about the Research Assistant codebase.
 
 ## Purpose

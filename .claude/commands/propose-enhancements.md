@@ -1,3 +1,7 @@
+---
+description: Automatically propose enhancements based on the recent codebase-qa conversation. (project)
+---
+
 Automatically propose enhancements based on the recent codebase-qa conversation.
 
 ## Purpose

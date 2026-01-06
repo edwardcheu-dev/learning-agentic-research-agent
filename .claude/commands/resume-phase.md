@@ -1,3 +1,9 @@
+---
+description: Resuming Phase $ARGUMENTS of the Research Assistant project. (project)
+argument-hint: [phase-number]
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit
+---
+
 Resuming Phase $ARGUMENTS of the Research Assistant project.
 
 ## Your Task: Resume Implementation

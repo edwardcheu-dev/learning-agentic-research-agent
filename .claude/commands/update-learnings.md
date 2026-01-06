@@ -1,3 +1,7 @@
+---
+description: Automatically capture architectural insights from the recent codebase-qa conversation. (project)
+---
+
 Automatically capture architectural insights from the recent codebase-qa conversation.
 
 ## Purpose

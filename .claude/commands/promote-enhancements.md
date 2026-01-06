@@ -1,3 +1,7 @@
+---
+description: Promote enhancement ideas into a new MVP phase in the project roadmap. (project)
+---
+
 Promote enhancement ideas into a new MVP phase in the project roadmap.
 
 ## Purpose

@@ -1,3 +1,9 @@
+---
+description: Starting Phase $ARGUMENTS of the Research Assistant project. (project)
+argument-hint: [phase-number]
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit
+---
+
 Starting Phase $ARGUMENTS of the Research Assistant project.
 
 ## Prerequisites
