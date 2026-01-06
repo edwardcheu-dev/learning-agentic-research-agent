@@ -7,7 +7,13 @@ from textual.widgets import Footer, Header, Input
 from src.agents.async_agent import AsyncAgent
 from src.client import create_async_client
 from src.config import DEFAULT_MAX_ITERATIONS
-from src.tui.widgets import QueryDisplay, StreamingText
+from src.tui.widgets import (
+    ActionNode,
+    ObservationNode,
+    QueryDisplay,
+    StreamingText,
+    ThoughtNode,
+)
 
 
 class ResearchAssistantApp(App):
@@ -66,5 +72,17 @@ class ResearchAssistantApp(App):
         async for agent_event in self.agent.run_streaming(query):
             if agent_event.type == "token":
                 streaming_widget.append_token(agent_event.content)
+            elif agent_event.type == "thought":
+                # Create ThoughtNode for thought events
+                thought_node = ThoughtNode(agent_event.content, status="done")
+                conversation.mount(thought_node)
+            elif agent_event.type == "action":
+                # Create ActionNode for action events
+                tool_name = agent_event.metadata.get("tool_name", "unknown")
+                tool_input = agent_event.metadata.get("tool_input", "")
+                action_node = ActionNode(tool_name, tool_input, status="done")
+                conversation.mount(action_node)
             elif agent_event.type == "observation":
-                streaming_widget.append_token(agent_event.content)
+                # Create ObservationNode for observation events
+                observation_node = ObservationNode(agent_event.content, status="done")
+                conversation.mount(observation_node)
