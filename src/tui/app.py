@@ -89,8 +89,12 @@ class ResearchAssistantApp(App):
                 thought_node = ThoughtNode(agent_event.content, status="done")
                 conversation.mount(thought_node)
             elif agent_event.type == "action":
-                # Create ActionNode for action events
+                # Skip ActionNode for "Answer" (shown in StreamingText instead)
                 tool_name = agent_event.metadata.get("tool_name", "unknown")
+                if tool_name == "Answer":
+                    continue
+
+                # Create ActionNode for actual tool actions
                 tool_input = agent_event.metadata.get("tool_input", "")
                 action_node = ActionNode(tool_name, tool_input, status="done")
                 conversation.mount(action_node)
