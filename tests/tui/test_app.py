@@ -147,3 +147,104 @@ class TestResearchAssistantApp:
             streaming_widget = streaming_widgets[0]
             rendered = str(streaming_widget.render())
             assert "Hello world!" in rendered
+
+    @patch("src.tui.app.create_async_client")
+    @patch("src.tui.app.AsyncAgent")
+    async def test_app_creates_thought_node_on_thought_event(
+        self, mock_agent_class, mock_create_async_client
+    ):
+        """Test that the app creates ThoughtNode when receiving thought event."""
+        # Mock async client and async agent
+        mock_client = Mock()
+        mock_create_async_client.return_value = mock_client
+
+        # Create async generator with thought event
+        async def mock_streaming_with_thought(query):
+            yield AgentEvent(type="thought", content="I should search for info")
+
+        mock_agent = AsyncMock()
+        mock_agent.run_streaming = mock_streaming_with_thought
+        mock_agent_class.return_value = mock_agent
+
+        app = ResearchAssistantApp()
+        async with app.run_test():
+            input_widget = app.query_one("Input")
+
+            from textual.widgets import Input
+
+            event = Input.Submitted(input_widget, value="Test query")
+            await app.on_input_submitted(event)
+
+            # Verify ThoughtNode was created
+            thought_nodes = app.query("#conversation ThoughtNode")
+            assert len(thought_nodes) > 0, "Should create ThoughtNode for thought event"
+
+    @patch("src.tui.app.create_async_client")
+    @patch("src.tui.app.AsyncAgent")
+    async def test_app_creates_action_node_on_action_event(
+        self, mock_agent_class, mock_create_async_client
+    ):
+        """Test that the app creates ActionNode when receiving action event."""
+        # Mock async client and async agent
+        mock_client = Mock()
+        mock_create_async_client.return_value = mock_client
+
+        # Create async generator with action event
+        async def mock_streaming_with_action(query):
+            yield AgentEvent(
+                type="action",
+                content="search_web(python)",
+                metadata={"tool_name": "search_web", "tool_input": "python"},
+            )
+
+        mock_agent = AsyncMock()
+        mock_agent.run_streaming = mock_streaming_with_action
+        mock_agent_class.return_value = mock_agent
+
+        app = ResearchAssistantApp()
+        async with app.run_test():
+            input_widget = app.query_one("Input")
+
+            from textual.widgets import Input
+
+            event = Input.Submitted(input_widget, value="Test query")
+            await app.on_input_submitted(event)
+
+            # Verify ActionNode was created
+            action_nodes = app.query("#conversation ActionNode")
+            assert len(action_nodes) > 0, "Should create ActionNode for action event"
+
+    @patch("src.tui.app.create_async_client")
+    @patch("src.tui.app.AsyncAgent")
+    async def test_app_creates_observation_node_on_observation_event(
+        self, mock_agent_class, mock_create_async_client
+    ):
+        """Test that the app creates ObservationNode for observation event."""
+        # Mock async client and async agent
+        mock_client = Mock()
+        mock_create_async_client.return_value = mock_client
+
+        # Create async generator with observation event
+        async def mock_streaming_with_observation(query):
+            yield AgentEvent(
+                type="observation", content="Observation: Search results found"
+            )
+
+        mock_agent = AsyncMock()
+        mock_agent.run_streaming = mock_streaming_with_observation
+        mock_agent_class.return_value = mock_agent
+
+        app = ResearchAssistantApp()
+        async with app.run_test():
+            input_widget = app.query_one("Input")
+
+            from textual.widgets import Input
+
+            event = Input.Submitted(input_widget, value="Test query")
+            await app.on_input_submitted(event)
+
+            # Verify ObservationNode was created
+            observation_nodes = app.query("#conversation ObservationNode")
+            assert len(observation_nodes) > 0, (
+                "Should create ObservationNode for observation event"
+            )
