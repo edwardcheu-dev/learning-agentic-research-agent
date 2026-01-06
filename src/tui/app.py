@@ -73,9 +73,21 @@ class ResearchAssistantApp(App):
             if agent_event.type == "token":
                 streaming_widget.append_token(agent_event.content)
             elif agent_event.type == "thought":
+                # Extract and preserve Answer text before clearing
+                current_text = streaming_widget._content
+                answer_text = ""
+                if "Answer:" in current_text:
+                    # Find the Answer section and preserve it
+                    answer_index = current_text.find("Answer:")
+                    answer_text = current_text[answer_index:]
+
                 # Clear streaming widget to hide raw Thought/Action text
-                # Remaining tokens (newlines, final Answer) will be shown
                 streaming_widget.clear()
+
+                # Restore Answer text if found
+                if answer_text:
+                    streaming_widget.append_token(answer_text)
+
                 # Create ThoughtNode for thought events
                 thought_node = ThoughtNode(agent_event.content, status="done")
                 conversation.mount(thought_node)
