@@ -54,6 +54,9 @@ class ResearchAssistantApp(App):
         if not query.strip():
             return
 
+        # Prevent event bubbling to avoid duplicate handler calls
+        event.stop()
+
         # Clear the input field
         input_widget = self.query_one(Input)
         input_widget.value = ""
