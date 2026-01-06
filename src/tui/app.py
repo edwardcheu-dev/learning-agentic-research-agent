@@ -67,30 +67,24 @@ class ResearchAssistantApp(App):
         # Display user query
         conversation.mount(QueryDisplay(query))
 
-        # Create streaming text widget for tokens
-        streaming_widget = StreamingText()
-        conversation.mount(streaming_widget)
+        # Track streaming widget - only create it when needed for Answer
+        streaming_widget = None
+        answer_detected = False
 
         # Stream agent response token by token
         async for agent_event in self.agent.run_streaming(query):
             if agent_event.type == "token":
-                streaming_widget.append_token(agent_event.content)
+                # Check if this token contains "Answer:" to detect final answer phase
+                if not answer_detected and "Answer:" in agent_event.content:
+                    answer_detected = True
+                    # Create and mount StreamingText widget at this point (after nodes)
+                    streaming_widget = StreamingText()
+                    conversation.mount(streaming_widget)
+
+                # Only append tokens if we're in the answer phase
+                if answer_detected and streaming_widget:
+                    streaming_widget.append_token(agent_event.content)
             elif agent_event.type == "thought":
-                # Extract and preserve Answer text before clearing
-                current_text = streaming_widget._content
-                answer_text = ""
-                if "Answer:" in current_text:
-                    # Find the Answer section and preserve it
-                    answer_index = current_text.find("Answer:")
-                    answer_text = current_text[answer_index:]
-
-                # Clear streaming widget to hide raw Thought/Action text
-                streaming_widget.clear()
-
-                # Restore Answer text if found
-                if answer_text:
-                    streaming_widget.append_token(answer_text)
-
                 # Create ThoughtNode for thought events
                 thought_node = ThoughtNode(agent_event.content, status="done")
                 conversation.mount(thought_node)

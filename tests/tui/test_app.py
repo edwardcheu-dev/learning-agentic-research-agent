@@ -44,7 +44,9 @@ class TestResearchAssistantApp:
 
         # Create async generator for streaming events
         async def mock_streaming_events(query):
-            yield AgentEvent(type="token", content="This is the agent's answer.")
+            yield AgentEvent(
+                type="token", content="Answer: This is the agent's answer."
+            )
 
         mock_agent = AsyncMock()
         mock_agent.run_streaming = mock_streaming_events
@@ -84,7 +86,7 @@ class TestResearchAssistantApp:
 
         # Create async generator for streaming events
         async def mock_streaming_events(query):
-            yield AgentEvent(type="token", content="Async agent response.")
+            yield AgentEvent(type="token", content="Answer: Async agent response.")
 
         mock_agent = AsyncMock()
         mock_agent.run_streaming = mock_streaming_events
@@ -119,7 +121,7 @@ class TestResearchAssistantApp:
 
         # Create async generator for streaming events
         async def mock_streaming_events(query):
-            yield AgentEvent(type="token", content="Hello")
+            yield AgentEvent(type="token", content="Answer: Hello")
             yield AgentEvent(type="token", content=" world")
             yield AgentEvent(type="token", content="!")
 
@@ -245,6 +247,6 @@ class TestResearchAssistantApp:
 
             # Verify ObservationNode was created
             observation_nodes = app.query("#conversation ObservationNode")
-            assert len(observation_nodes) > 0, (
-                "Should create ObservationNode for observation event"
-            )
+            assert (
+                len(observation_nodes) > 0
+            ), "Should create ObservationNode for observation event"
