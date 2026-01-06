@@ -224,38 +224,50 @@ repeat Thought/Action as needed until you can provide a final Answer.
                 stream=True,  # Enable streaming
             )
 
-            # Collect full response first (before yielding events)
+            # Stream tokens in real-time while accumulating for thought/action parsing
             llm_response = ""
-            tokens = []
+            thought_emitted = False
+
             async for chunk in stream:
                 # Extract token from chunk
                 delta = chunk.choices[0].delta
                 if hasattr(delta, "content") and delta.content:
                     token = delta.content
                     llm_response += token
-                    tokens.append(token)
 
-            # Parse thought and action from complete response
-            thought = self._parse_thought(llm_response)
+                    # Try to parse and emit thought early (before streaming tokens)
+                    # Thought is complete when we see "\nAction:" or end of response
+                    if not thought_emitted and "\nAction:" in llm_response:
+                        thought = self._parse_thought(llm_response)
+                        if thought:
+                            yield AgentEvent(
+                                type="thought",
+                                content=thought,
+                                metadata={"iteration": iteration},
+                            )
+                            thought_emitted = True
+
+                    # Emit token event for real-time streaming
+                    yield AgentEvent(
+                        type="token",
+                        content=token,
+                        metadata={"iteration": iteration},
+                    )
+
+            # Parse action after response is complete
             action = self._parse_action(llm_response)
 
-            # Emit thought event FIRST (before tokens)
-            if thought:
-                yield AgentEvent(
-                    type="thought",
-                    content=thought,
-                    metadata={"iteration": iteration},
-                )
+            # If thought wasn't emitted yet (no action), emit it now
+            if not thought_emitted:
+                thought = self._parse_thought(llm_response)
+                if thought:
+                    yield AgentEvent(
+                        type="thought",
+                        content=thought,
+                        metadata={"iteration": iteration},
+                    )
 
-            # Then emit all collected tokens
-            for token in tokens:
-                yield AgentEvent(
-                    type="token",
-                    content=token,
-                    metadata={"iteration": iteration},
-                )
-
-            # Emit action event after tokens
+            # Emit action event after streaming completes
             if action:
                 tool_name, tool_input = action
                 yield AgentEvent(
