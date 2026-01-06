@@ -189,3 +189,44 @@ def test_agent_stops_when_final_answer_provided():
 
     # Only one observation (from first action)
     assert result.count("Observation:") == 1
+
+
+def test_agent_handles_action_answer_format():
+    """Agent should handle 'Action: Answer: [text]' without error."""
+    mock_client = Mock()
+
+    # First call: Action, Second call: "Action: Answer: [text]" format
+    responses = [
+        Mock(
+            choices=[
+                Mock(
+                    message=Mock(
+                        content="Thought: I'll search\nAction: search_web: info"
+                    )
+                )
+            ]
+        ),
+        Mock(
+            choices=[
+                Mock(
+                    message=Mock(
+                        content="Thought: I have enough info\nAction: Answer: Here is the final answer"  # noqa: E501
+                    )
+                )
+            ]
+        ),
+    ]
+    mock_client.chat.completions.create.side_effect = responses
+
+    agent = Agent(client=mock_client, max_iterations=5)
+    result = agent.run("Test query")
+
+    # Should stop after 2 calls without error
+    assert mock_client.chat.completions.create.call_count == 2
+
+    # Verify result contains the final answer
+    assert "Answer:" in result
+    assert "Here is the final answer" in result
+
+    # Only one observation (from first action, not from "Answer")
+    assert result.count("Observation:") == 1

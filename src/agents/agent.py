@@ -158,6 +158,11 @@ repeat Thought/Action as needed until you can provide a final Answer.
 
             # Execute tool
             tool_name, tool_input = action
+
+            # Special case: "Answer" is not a tool, it's the final answer
+            if tool_name == "Answer":
+                break
+
             tool_result = self._execute_tool(tool_name, tool_input)
 
             # Format observation

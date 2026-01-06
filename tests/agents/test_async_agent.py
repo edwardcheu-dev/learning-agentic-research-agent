@@ -294,3 +294,53 @@ async def test_async_agent_emits_events_in_correct_order():
 
     assert thought_idx < action_idx, "Thought should come before action"
     assert action_idx < observation_idx, "Action should come before observation"
+
+
+@pytest.mark.asyncio
+async def test_async_agent_handles_action_answer_format():
+    """AsyncAgent should handle 'Action: Answer: [text]' without error."""
+    mock_client = AsyncMock()
+
+    # First iteration: Normal action
+    async def mock_stream_first():
+        """First LLM call with search action."""
+        yield Mock(choices=[Mock(delta=Mock(content="Thought: I'll search\n"))])
+        yield Mock(choices=[Mock(delta=Mock(content="Action: search_web: info"))])
+
+    # Second iteration: "Action: Answer: [text]" format
+    async def mock_stream_second():
+        """Second LLM call with Answer action."""
+        yield Mock(choices=[Mock(delta=Mock(content="Thought: I have enough\n"))])
+        yield Mock(choices=[Mock(delta=Mock(content="Action: Answer: Final answer"))])
+
+    # Mock client to return different streams for each call
+    call_count = 0
+
+    async def mock_create(**kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return mock_stream_first()
+        else:
+            return mock_stream_second()
+
+    mock_client.chat.completions.create = mock_create
+
+    agent = AsyncAgent(client=mock_client, max_iterations=5)
+
+    # Collect events - should not raise ValueError
+    events = []
+    async for event in agent.run_streaming("Test query"):
+        events.append(event)
+
+    # Should have processed 2 iterations
+    assert call_count == 2
+
+    # Should have observation from first action only (not from Answer)
+    observation_events = [e for e in events if e.type == "observation"]
+    assert len(observation_events) == 1
+
+    # Should have action events for both iterations
+    action_events = [e for e in events if e.type == "action"]
+    assert len(action_events) == 2
+    assert action_events[1].metadata["tool_name"] == "Answer"

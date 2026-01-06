@@ -27,7 +27,7 @@ Examples:
 import os
 
 # Model configuration
-MODEL_NAME: str = "gpt-5.1"
+MODEL_NAME: str = "gpt-4.1"
 """The OpenAI model to use for agent reasoning (Poe API identifier).
 Using GPT-5.1 for most up-to-date ReAct compliance model."""
 
