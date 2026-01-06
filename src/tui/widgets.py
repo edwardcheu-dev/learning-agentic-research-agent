@@ -90,3 +90,78 @@ class ThoughtNode(Static):
         super().__init__(formatted)
         self._content_text = content
         self._status = status
+
+
+class ActionNode(Static):
+    """Widget to display agent actions with tool name and input.
+
+    Shows the tool being executed along with its input parameters,
+    with visual status indicators to track execution progress.
+    """
+
+    STATUS_SYMBOLS = {
+        "pending": "○",  # Hollow circle
+        "running": "●",  # Filled circle
+        "done": "✓",  # Checkmark
+    }
+
+    STATUS_COLORS = {
+        "pending": "dim",
+        "running": "yellow",
+        "done": "green",
+    }
+
+    def __init__(
+        self, tool_name: str, tool_input: str, status: StatusType = "pending"
+    ) -> None:
+        """Initialize ActionNode with tool name, input, and status.
+
+        Args:
+            tool_name: The name of the tool being executed
+            tool_input: The input/arguments for the tool
+            status: The status indicator (pending, running, or done)
+        """
+        symbol = self.STATUS_SYMBOLS[status]
+        color = self.STATUS_COLORS[status]
+        formatted = (
+            f"[{color}]{symbol}[/{color}] [bold]Action:[/bold] "
+            f"{tool_name}({tool_input})"
+        )
+        super().__init__(formatted)
+        self._tool_name = tool_name
+        self._tool_input = tool_input
+        self._status = status
+
+
+class ObservationNode(Static):
+    """Widget to display tool execution results.
+
+    Shows the observation/result from tool execution with visual
+    status indicators to track processing progress.
+    """
+
+    STATUS_SYMBOLS = {
+        "pending": "○",  # Hollow circle
+        "running": "●",  # Filled circle
+        "done": "✓",  # Checkmark
+    }
+
+    STATUS_COLORS = {
+        "pending": "dim",
+        "running": "yellow",
+        "done": "green",
+    }
+
+    def __init__(self, result: str, status: StatusType = "pending") -> None:
+        """Initialize ObservationNode with result and status.
+
+        Args:
+            result: The observation/result to display
+            status: The status indicator (pending, running, or done)
+        """
+        symbol = self.STATUS_SYMBOLS[status]
+        color = self.STATUS_COLORS[status]
+        formatted = f"[{color}]{symbol}[/{color}] [bold]Observation:[/bold] {result}"
+        super().__init__(formatted)
+        self._result = result
+        self._status = status
