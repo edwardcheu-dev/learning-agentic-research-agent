@@ -816,8 +816,26 @@ async for agent_event in self.agent.run_streaming(query):
 - `ea254a9`: test: add tests for TUI event-based node creation
 - `5323fb5`: feat: implement event-based node creation in TUI
 
+**Manual Verification Results**:
+
+**Test Plan**: See `docs/test-plans/phase-2-group-5.md`
+
+**Status**: ⏸️ PENDING (awaiting user verification)
+
+**What to Verify**:
+- ThoughtNode displays with status indicator (✓ green)
+- ActionNode shows tool name and input format
+- ObservationNode displays result text
+- Status symbols render correctly (○ ● ✓)
+- Status colors work (dim/yellow/green)
+- Nodes appear in correct order (Thought → Action → Observation)
+- Multiple ReAct iterations display properly
+- Visual separation between streaming text and nodes
+
+User verification will confirm that ReAct step visualization provides clear visual feedback for the agent's reasoning process and that status indicators are intuitive and helpful.
+
 **Next Steps**:
-GROUP 6 will implement progressive disclosure by making ThoughtNode/ActionNode/ObservationNode collapsible/expandable, with only the latest step expanded by default.
+After user verification of GROUP 5, GROUP 6 will implement progressive disclosure by making ThoughtNode/ActionNode/ObservationNode collapsible/expandable, with only the latest step expanded by default.
 
 ### GROUP 6: Progressive Disclosure
 

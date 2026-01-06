@@ -79,6 +79,21 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - [x] Update learning log with GROUP 5 progress
 - [x] Update README.md progress (5/8 = 62.5%, round to 63%)
 
+**Manual Verification**: ⏸️ PENDING USER VERIFICATION
+- Test plan: `docs/test-plans/phase-2-group-5.md`
+- Status: Awaiting user verification (created 2026-01-06)
+- [ ] User has verified and approved GROUP 5
+
+**To Verify**:
+1. ThoughtNode displays with status indicator (✓ green)
+2. ActionNode shows tool name and input (search_web(query))
+3. ObservationNode displays result text
+4. Status symbols render correctly (○ ● ✓)
+5. Status colors work (dim/yellow/green)
+6. Nodes appear in correct order (Thought → Action → Observation)
+7. Multiple ReAct iterations display properly
+8. Visual separation between streaming text and nodes
+
 ## GROUP 6: Progressive Disclosure
 - [ ] Test: Nodes can be collapsed/expanded
 - [ ] Implement: Add Collapsible wrappers to ReAct nodes
