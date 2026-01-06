@@ -66,18 +66,18 @@ Replace REPL with professional Textual-based TUI featuring streaming output, pro
 - Notes: Fixed two critical bugs - missing observation events and Answer formatting
 - Bug fixes: Observation now displays, Answer appears on new line with proper spacing
 
-## GROUP 5: ReAct Step Visualization
-- [ ] Test: ThoughtNode displays content and status indicator
-- [ ] Implement: Add ThoughtNode widget with status (pending/running/done)
-- [ ] Test: ActionNode shows tool name/input, ObservationNode shows result
-- [ ] Implement: Add ActionNode and ObservationNode classes
-- [ ] Test: AsyncAgent emits separate events for thought/action/observation
-- [ ] Implement: Modify run_streaming() to yield typed events
-- [ ] Test: TUI creates appropriate node type for each event
-- [ ] Implement: Add event handler to create ThoughtNode/ActionNode/ObservationNode
-- [ ] Manual verification: Verify separate sections with status indicators
-- [ ] Update learning log with GROUP 5 progress
-- [ ] Update README.md progress (5/8 = 62.5%, round to 63%)
+## GROUP 5: ReAct Step Visualization ✅
+- [x] Test: ThoughtNode displays content and status indicator
+- [x] Implement: Add ThoughtNode widget with status (pending/running/done)
+- [x] Test: ActionNode shows tool name/input, ObservationNode shows result
+- [x] Implement: Add ActionNode and ObservationNode classes
+- [x] Test: AsyncAgent emits separate events for thought/action/observation
+- [x] Implement: Modify run_streaming() to yield typed events
+- [x] Test: TUI creates appropriate node type for each event
+- [x] Implement: Add event handler to create ThoughtNode/ActionNode/ObservationNode
+- [x] Manual verification: Verify separate sections with status indicators
+- [x] Update learning log with GROUP 5 progress
+- [x] Update README.md progress (5/8 = 62.5%, round to 63%)
 
 ## GROUP 6: Progressive Disclosure
 - [ ] Test: Nodes can be collapsed/expanded
