@@ -816,26 +816,68 @@ async for agent_event in self.agent.run_streaming(query):
 - `ea254a9`: test: add tests for TUI event-based node creation
 - `5323fb5`: feat: implement event-based node creation in TUI
 
+**Critical Bug Fixes During Verification**:
+
+After initial implementation, two critical issues were discovered and fixed:
+
+1. **Answer Appearing Before Thought Node**
+   - **Issue**: StreamingText widget (Answer) was mounting before ThoughtNode, creating wrong visual order
+   - **Root Cause**: `run_streaming()` was emitting tokens first (before thought/action parsing), so tokens reached the TUI before the thought event
+   - **Fix**: Modified `run_streaming()` to emit thought event FIRST, then tokens
+   - **Commits**:
+     - `b158468`: Emit thought event before tokens in run_streaming
+     - `3980b2e`: Restore real-time streaming while maintaining correct event order
+
+2. **Streaming Feature Lost After Fix**
+   - **Issue**: All tokens were being emitted in rapid succession in a loop, losing real-time streaming effect
+   - **Root Cause**: Attempted to buffer all tokens and emit them after thought, but this batched all tokens together
+   - **Fix**: Implemented two-phase streaming:
+     - Phase 1: Buffer tokens until thought line is detected (marked by newline)
+     - Phase 2: Emit thought event, then emit buffered tokens, then stream new tokens as they arrive
+   - **Implementation Details**:
+     ```python
+     # Wait until we have a complete thought line (with newline)
+     if not thought_emitted and "\n" in llm_response:
+         thought = self._parse_thought(llm_response)
+         if thought:
+             # Emit thought first
+             yield AgentEvent(type="thought", content=thought)
+             thought_emitted = True
+
+             # Emit all buffered tokens
+             for buffered_token in tokens_buffer:
+                 yield AgentEvent(type="token", content=buffered_token)
+             tokens_buffer = []
+     else:
+         # After thought detected, stream new tokens immediately
+         yield AgentEvent(type="token", content=token)
+     ```
+   - **Commit**: `791c8bb`: Emit new tokens in real-time after thought detection
+
+**Key Learning**: Event ordering is critical in streaming UIs. The sequence matters:
+- **Wrong**: tokens → thought (answer appears before reasoning)
+- **Wrong**: buffer all tokens then emit (lose streaming effect)
+- **Correct**: buffer until thought ready → emit thought → emit buffered tokens → stream new tokens
+
 **Manual Verification Results**:
 
 **Test Plan**: See `docs/test-plans/phase-2-group-5.md`
 
-**Status**: ⏸️ PENDING (awaiting user verification)
+**Status**: ✅ VERIFIED (2026-01-07)
 
-**What to Verify**:
-- ThoughtNode displays with status indicator (✓ green)
-- ActionNode shows tool name and input format
-- ObservationNode displays result text
-- Status symbols render correctly (○ ● ✓)
-- Status colors work (dim/yellow/green)
-- Nodes appear in correct order (Thought → Action → Observation)
-- Multiple ReAct iterations display properly
-- Visual separation between streaming text and nodes
-
-User verification will confirm that ReAct step visualization provides clear visual feedback for the agent's reasoning process and that status indicators are intuitive and helpful.
+**Verified Behavior**:
+- ✅ ThoughtNode displays with status indicator (✓ green)
+- ✅ ActionNode shows tool name and input format
+- ✅ ObservationNode displays result text
+- ✅ Status symbols render correctly (○ ● ✓)
+- ✅ Status colors work (dim/yellow/green)
+- ✅ Nodes appear in correct order (Thought → Action → Observation)
+- ✅ Real-time token streaming character-by-character (smooth display)
+- ✅ Visual separation between streaming text and nodes
+- ✅ Multiple ReAct iterations display properly
 
 **Next Steps**:
-After user verification of GROUP 5, GROUP 6 will implement progressive disclosure by making ThoughtNode/ActionNode/ObservationNode collapsible/expandable, with only the latest step expanded by default.
+GROUP 6 will implement progressive disclosure by making ThoughtNode/ActionNode/ObservationNode collapsible/expandable, with only the latest step expanded by default.
 
 ### GROUP 6: Progressive Disclosure
 
