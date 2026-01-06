@@ -224,8 +224,9 @@ repeat Thought/Action as needed until you can provide a final Answer.
                 stream=True,  # Enable streaming
             )
 
-            # Stream tokens in real-time while accumulating for thought/action parsing
+            # Accumulate response and buffer tokens until thought is detected
             llm_response = ""
+            tokens_buffer = []
             thought_emitted = False
 
             async for chunk in stream:
@@ -234,12 +235,13 @@ repeat Thought/Action as needed until you can provide a final Answer.
                 if hasattr(delta, "content") and delta.content:
                     token = delta.content
                     llm_response += token
+                    tokens_buffer.append(token)
 
-                    # Try to parse and emit thought early (before streaming tokens)
-                    # Thought is complete when we see "\nAction:" or end of response
-                    if not thought_emitted and "\nAction:" in llm_response:
+                    # Try to parse thought once we have a complete line (with newline)
+                    if not thought_emitted and "\n" in llm_response:
                         thought = self._parse_thought(llm_response)
                         if thought:
+                            # Emit thought event FIRST
                             yield AgentEvent(
                                 type="thought",
                                 content=thought,
@@ -247,17 +249,27 @@ repeat Thought/Action as needed until you can provide a final Answer.
                             )
                             thought_emitted = True
 
-                    # Emit token event for real-time streaming
-                    yield AgentEvent(
-                        type="token",
-                        content=token,
-                        metadata={"iteration": iteration},
-                    )
+                            # Now emit all buffered tokens for streaming effect
+                            for buffered_token in tokens_buffer:
+                                yield AgentEvent(
+                                    type="token",
+                                    content=buffered_token,
+                                    metadata={"iteration": iteration},
+                                )
+                            tokens_buffer = []
+
+            # Emit any remaining buffered tokens (if thought wasn't parsed yet)
+            for token in tokens_buffer:
+                yield AgentEvent(
+                    type="token",
+                    content=token,
+                    metadata={"iteration": iteration},
+                )
 
             # Parse action after response is complete
             action = self._parse_action(llm_response)
 
-            # If thought wasn't emitted yet (no action), emit it now
+            # If thought wasn't emitted yet, emit it now
             if not thought_emitted:
                 thought = self._parse_thought(llm_response)
                 if thought:
