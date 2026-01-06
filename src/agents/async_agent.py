@@ -171,6 +171,26 @@ repeat Thought/Action as needed until you can provide a final Answer.
 
         return conversation.strip()
 
+    def _parse_thought(self, response: str) -> str | None:
+        """Parse thought content from LLM response.
+
+        Args:
+            response: LLM response text
+
+        Returns:
+            Thought content if found, None otherwise
+        """
+        if "Thought:" not in response:
+            return None
+
+        for line in response.split("\n"):
+            if line.strip().startswith("Thought:"):
+                # Extract thought after "Thought: " prefix
+                thought_content = line.strip()[8:].strip()
+                return thought_content
+
+        return None
+
     async def run_streaming(self, query: str) -> AsyncGenerator[AgentEvent, None]:
         """Run the agent on a query with streaming token events.
 
@@ -215,8 +235,30 @@ repeat Thought/Action as needed until you can provide a final Answer.
                         metadata={"iteration": iteration},
                     )
 
+            # Parse and emit thought event
+            thought = self._parse_thought(llm_response)
+            if thought:
+                yield AgentEvent(
+                    type="thought",
+                    content=thought,
+                    metadata={"iteration": iteration},
+                )
+
             # Parse action
             action = self._parse_action(llm_response)
+
+            # Emit action event if action found
+            if action:
+                tool_name, tool_input = action
+                yield AgentEvent(
+                    type="action",
+                    content=f"{tool_name}({tool_input})",
+                    metadata={
+                        "iteration": iteration,
+                        "tool_name": tool_name,
+                        "tool_input": tool_input,
+                    },
+                )
 
             # If no action, agent has provided final answer
             if action is None:
