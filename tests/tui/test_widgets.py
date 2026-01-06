@@ -2,7 +2,14 @@
 
 from textual.app import App
 
-from src.tui.widgets import QueryDisplay, ResponseDisplay, StreamingText, ThoughtNode
+from src.tui.widgets import (
+    ActionNode,
+    ObservationNode,
+    QueryDisplay,
+    ResponseDisplay,
+    StreamingText,
+    ThoughtNode,
+)
 
 
 class TestQueryDisplay:
@@ -139,6 +146,131 @@ class TestThoughtNode:
         async with app.run_test():
             thought_node = app.query_one(ThoughtNode)
             rendered = str(thought_node.render())
+
+            # Check for done indicator
+            assert "done" in rendered.lower() or "✓" in rendered or "●" in rendered
+
+
+class TestActionNode:
+    """Test the ActionNode widget."""
+
+    async def test_action_node_displays_tool_name_and_input(self):
+        """Test that ActionNode displays the tool name and input."""
+
+        class TestApp(App):
+            """Test app to host ActionNode."""
+
+            def compose(self):
+                yield ActionNode(
+                    tool_name="search_web",
+                    tool_input="latest AI news",
+                    status="running",
+                )
+
+        app = TestApp()
+        async with app.run_test():
+            action_node = app.query_one(ActionNode)
+            assert action_node is not None
+
+            rendered = str(action_node.render())
+            # Check that tool name and input are displayed
+            assert "search_web" in rendered
+            assert "latest AI news" in rendered
+            assert "Action" in rendered or "action" in rendered
+
+    async def test_action_node_status_pending(self):
+        """Test that ActionNode shows pending status indicator."""
+
+        class TestApp(App):
+            """Test app to host ActionNode."""
+
+            def compose(self):
+                yield ActionNode(
+                    tool_name="save_note", tool_input="test note", status="pending"
+                )
+
+        app = TestApp()
+        async with app.run_test():
+            action_node = app.query_one(ActionNode)
+            rendered = str(action_node.render())
+
+            # Check for pending indicator
+            assert "pending" in rendered.lower() or "○" in rendered or "⊙" in rendered
+
+    async def test_action_node_status_done(self):
+        """Test that ActionNode shows done status indicator."""
+
+        class TestApp(App):
+            """Test app to host ActionNode."""
+
+            def compose(self):
+                yield ActionNode(
+                    tool_name="search_web", tool_input="query", status="done"
+                )
+
+        app = TestApp()
+        async with app.run_test():
+            action_node = app.query_one(ActionNode)
+            rendered = str(action_node.render())
+
+            # Check for done indicator
+            assert "done" in rendered.lower() or "✓" in rendered or "●" in rendered
+
+
+class TestObservationNode:
+    """Test the ObservationNode widget."""
+
+    async def test_observation_node_displays_result(self):
+        """Test that ObservationNode displays the observation result."""
+
+        class TestApp(App):
+            """Test app to host ObservationNode."""
+
+            def compose(self):
+                yield ObservationNode(
+                    "Search results: Found 5 articles about AI", status="done"
+                )
+
+        app = TestApp()
+        async with app.run_test():
+            observation_node = app.query_one(ObservationNode)
+            assert observation_node is not None
+
+            rendered = str(observation_node.render())
+            # Check that the observation result is displayed
+            assert "Search results: Found 5 articles about AI" in rendered
+            assert "Observation" in rendered or "observation" in rendered
+
+    async def test_observation_node_status_running(self):
+        """Test that ObservationNode shows running status indicator."""
+
+        class TestApp(App):
+            """Test app to host ObservationNode."""
+
+            def compose(self):
+                yield ObservationNode("Processing...", status="running")
+
+        app = TestApp()
+        async with app.run_test():
+            observation_node = app.query_one(ObservationNode)
+            rendered = str(observation_node.render())
+
+            # Check for running indicator
+            assert "running" in rendered.lower() or "●" in rendered or "⋯" in rendered
+
+    async def test_observation_node_status_done(self):
+        """Test that ObservationNode shows done status indicator."""
+
+        class TestApp(App):
+            """Test app to host ObservationNode."""
+
+            def compose(self):
+                yield ObservationNode("Completed successfully", status="done")
+
+        app = TestApp()
+        async with app.run_test():
+            observation_node = app.query_one(ObservationNode)
+            rendered = str(observation_node.render())
 
             # Check for done indicator
             assert "done" in rendered.lower() or "✓" in rendered or "●" in rendered
