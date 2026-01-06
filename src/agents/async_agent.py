@@ -224,24 +224,22 @@ repeat Thought/Action as needed until you can provide a final Answer.
                 stream=True,  # Enable streaming
             )
 
-            # Collect full response while yielding tokens
+            # Collect full response first (before yielding events)
             llm_response = ""
+            tokens = []
             async for chunk in stream:
                 # Extract token from chunk
                 delta = chunk.choices[0].delta
                 if hasattr(delta, "content") and delta.content:
                     token = delta.content
                     llm_response += token
+                    tokens.append(token)
 
-                    # Yield token event
-                    yield AgentEvent(
-                        type="token",
-                        content=token,
-                        metadata={"iteration": iteration},
-                    )
-
-            # Parse and emit thought event
+            # Parse thought and action from complete response
             thought = self._parse_thought(llm_response)
+            action = self._parse_action(llm_response)
+
+            # Emit thought event FIRST (before tokens)
             if thought:
                 yield AgentEvent(
                     type="thought",
@@ -249,10 +247,15 @@ repeat Thought/Action as needed until you can provide a final Answer.
                     metadata={"iteration": iteration},
                 )
 
-            # Parse action
-            action = self._parse_action(llm_response)
+            # Then emit all collected tokens
+            for token in tokens:
+                yield AgentEvent(
+                    type="token",
+                    content=token,
+                    metadata={"iteration": iteration},
+                )
 
-            # Emit action event if action found
+            # Emit action event after tokens
             if action:
                 tool_name, tool_input = action
                 yield AgentEvent(
