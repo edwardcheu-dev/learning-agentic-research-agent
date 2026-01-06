@@ -57,6 +57,11 @@ class StreamingText(Static):
         self._content += token
         self.update(self._content)
 
+    def clear(self) -> None:
+        """Clear all content from the streaming text."""
+        self._content = ""
+        self.update(self._content)
+
 
 class ThoughtNode(Static):
     """Widget to display agent reasoning steps with status indicators.

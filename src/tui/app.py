@@ -64,7 +64,7 @@ class ResearchAssistantApp(App):
         # Display user query
         conversation.mount(QueryDisplay(query))
 
-        # Create streaming text widget
+        # Create streaming text widget for tokens
         streaming_widget = StreamingText()
         conversation.mount(streaming_widget)
 
@@ -73,6 +73,9 @@ class ResearchAssistantApp(App):
             if agent_event.type == "token":
                 streaming_widget.append_token(agent_event.content)
             elif agent_event.type == "thought":
+                # Clear streaming widget to hide raw Thought/Action text
+                # Remaining tokens (newlines, final Answer) will be shown
+                streaming_widget.clear()
                 # Create ThoughtNode for thought events
                 thought_node = ThoughtNode(agent_event.content, status="done")
                 conversation.mount(thought_node)
