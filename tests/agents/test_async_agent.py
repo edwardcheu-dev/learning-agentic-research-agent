@@ -194,3 +194,103 @@ async def test_async_agent_streaming_adds_newline_after_observation():
     token_after_obs = events[obs_index + 1]
     assert token_after_obs.type == "token"
     assert token_after_obs.content == "\n"
+
+
+@pytest.mark.asyncio
+async def test_async_agent_emits_thought_event():
+    """AsyncAgent.run_streaming() should emit a thought event for Thought: sections."""
+    mock_client = AsyncMock()
+
+    # Mock streaming response with Thought and Action
+    async def mock_stream_with_thought():
+        """Async generator that yields thought and action."""
+        yield Mock(choices=[Mock(delta=Mock(content="Thought: I"))])
+        yield Mock(choices=[Mock(delta=Mock(content=" should search"))])
+        yield Mock(choices=[Mock(delta=Mock(content="\nAction: search_web: test"))])
+
+    mock_client.chat.completions.create.return_value = mock_stream_with_thought()
+
+    agent = AsyncAgent(client=mock_client, max_iterations=3)
+
+    # Collect events from streaming
+    events = []
+    async for event in agent.run_streaming("Test query"):
+        events.append(event)
+
+    # Verify we received a thought event
+    thought_events = [e for e in events if e.type == "thought"]
+    assert len(thought_events) > 0, "Should yield thought event"
+
+    # Verify thought content
+    thought_event = thought_events[0]
+    assert "should search" in thought_event.content.lower()
+
+
+@pytest.mark.asyncio
+async def test_async_agent_emits_action_event():
+    """AsyncAgent.run_streaming() should emit an action event for Action: sections."""
+    mock_client = AsyncMock()
+
+    # Mock streaming response with Thought and Action
+    async def mock_stream_with_action():
+        """Async generator that yields thought and action."""
+        yield Mock(choices=[Mock(delta=Mock(content="Thought: Search for info\n"))])
+        yield Mock(choices=[Mock(delta=Mock(content="Action: search_web: python"))])
+
+    mock_client.chat.completions.create.return_value = mock_stream_with_action()
+
+    agent = AsyncAgent(client=mock_client, max_iterations=3)
+
+    # Collect events from streaming
+    events = []
+    async for event in agent.run_streaming("Test query"):
+        events.append(event)
+
+    # Verify we received an action event
+    action_events = [e for e in events if e.type == "action"]
+    assert len(action_events) > 0, "Should yield action event"
+
+    # Verify action metadata
+    action_event = action_events[0]
+    assert "tool_name" in action_event.metadata
+    assert "tool_input" in action_event.metadata
+    assert action_event.metadata["tool_name"] == "search_web"
+    assert action_event.metadata["tool_input"] == "python"
+
+
+@pytest.mark.asyncio
+async def test_async_agent_emits_events_in_correct_order():
+    """AsyncAgent should emit events in order: thought -> action -> observation."""
+    mock_client = AsyncMock()
+
+    # Mock streaming response with complete ReAct turn
+    async def mock_stream_complete():
+        """Async generator that yields a complete turn."""
+        yield Mock(choices=[Mock(delta=Mock(content="Thought: I need to search\n"))])
+        yield Mock(choices=[Mock(delta=Mock(content="Action: search_web: test"))])
+
+    mock_client.chat.completions.create.return_value = mock_stream_complete()
+
+    agent = AsyncAgent(client=mock_client, max_iterations=3)
+
+    # Collect events from streaming
+    events = []
+    async for event in agent.run_streaming("Test query"):
+        events.append(event)
+
+    # Extract event types (excluding token events for clarity)
+    semantic_events = [e for e in events if e.type != "token"]
+    event_types = [e.type for e in semantic_events]
+
+    # Should have: thought, action, observation (in that order)
+    assert "thought" in event_types
+    assert "action" in event_types
+    assert "observation" in event_types
+
+    # Verify order
+    thought_idx = event_types.index("thought")
+    action_idx = event_types.index("action")
+    observation_idx = event_types.index("observation")
+
+    assert thought_idx < action_idx, "Thought should come before action"
+    assert action_idx < observation_idx, "Action should come before observation"
